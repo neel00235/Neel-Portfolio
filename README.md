@@ -1,60 +1,103 @@
-# Neel Patel — Portfolio
+# Neel Patel — Video Editor & Colourist (2026 Edition)
 
-A single-page, award-grade, layered, scroll-driven portfolio for a video editor and colourist.
-Static HTML, CSS, and JS — no build step, no dependencies, no framework, works straight off `file://`.
+An Awwwards Site-of-the-Day-grade, cinematic portfolio built with **Next.js 15 App Router**, **TypeScript**, **Tailwind CSS**, **GSAP (ScrollTrigger + Flip)**, **Lenis**, **OGL**, and **Zustand**. 
+
+Static export (`output: 'export'`) emitting **57 static HTML pages** (5 routes + 52 standalone, crawlable `/project/[slug]` pages with complete OpenGraph and `schema.org` VideoObject metadata).
+
+---
+
+## Directory Structure
 
 ```
 neel-portfolio/
-├── index.html          the whole page (7 sections + curtain + chrome)
-├── css/main.css        design system (warm palette, Fraunces/Instrument/Ephesis type, layered motion)
-├── js/data.js          GENERATED — video metadata & editorial copy
-├── js/app.js           unified engine (Video, Works chapters, Gallery, Skills band, Services sheets, rAF loop)
-├── assets/
-│   ├── manifest.json   GENERATED — video metadata + dominant tones
-│   ├── thumbs/         52 WebP stills, 1280px wide
-│   ├── fonts/          self-hosted Fraunces variable, Instrument Serif, Ephesis, Manrope, JetBrains Mono
-│   ├── neel-collage.webp  pre-processed warm desaturated portrait for parallax collage hero
-│   └── neel.jpg/.webp  portrait source files
-├── build-assets.py     fetches Vimeo metadata + extracts dominant tones + processes portrait → manifest.json
-└── build-data.py       manifest.json + editorial copy → js/data.js
+├── docs/
+│   ├── ABSOLUTE-CINEMA-BLUEPRINT.md  master architectural specification
+│   └── archive/v3-static/            archived v3 baseline static build
+├── out/                              GENERATED static HTML/asset distribution (57+ HTML files)
+├── public/
+│   ├── audio/                        UI audio one-shots
+│   ├── fonts/                        self-hosted Fraunces, Instrument Serif, Ephesis, Manrope, JetBrains Mono
+│   ├── og/                           52 social OpenGraph preview images (1200x630)
+│   ├── portrait/                     editorial portrait collage assets
+│   ├── posters/                      52 multi-resolution WebP posters
+│   └── previews/                     Tier-1 preview micro-assets
+├── scripts/
+│   ├── build-posters.mjs             Sharp-based multi-resolution poster & LQIP generator
+│   └── verify-content.mjs            Prime Directive I content preservation gate
+├── src/
+│   ├── app/                          Next.js 15 App Router pages & metadata routes
+│   │   ├── page.tsx                  Home narrative single scroll
+│   │   ├── projects/page.tsx         Complete 52-video gallery catalogue
+│   │   ├── project/[slug]/page.tsx   52 individual static project routes
+│   │   ├── about/page.tsx            Dedicated about editorial route
+│   │   ├── contact/page.tsx          Dedicated contact route
+│   │   ├── layout.tsx                Root layout with font variables, smooth scroll, & textures
+│   │   ├── sitemap.ts                Static XML sitemap generator
+│   │   └── robots.ts                 Robots.txt generator
+│   ├── components/
+│   │   ├── canvas/ToneField.tsx      OGL WebGL ambient shader plane
+│   │   ├── curtain/Curtain.tsx       Scroll-to-split aperture bisection preloader
+│   │   ├── cursor/MagneticCursor.tsx 60fps write-only magnetic cursor with 9 states
+│   │   ├── cursor/Magnetic.tsx       Magnetic interactive element wrapper
+│   │   ├── layout/                   Header & Footer components
+│   │   ├── scroller/                 Lenis + GSAP ScrollTrigger smooth scroller
+│   │   ├── sections/                 Hero, SelectedWorks, Gallery, Toolkit, Services, Contact
+│   │   └── video/                    VideoFrame, VimeoFacade, PlayerChrome
+│   ├── data/
+│   │   ├── content.ts                VERBATIM prose, specs, endpoints, and labels
+│   │   ├── lqip.json                 52 base64 blurDataURLs
+│   │   ├── portfolio.generated.ts    GENERATED typed catalogue
+│   │   └── slugs.ts                  52 frozen slugs
+│   └── store/
+│       ├── useSound.ts               Global audio state and toggle
+│       ├── useTone.ts                Ambient tone system with CSS @property synchronization
+│       └── useVideoRegistry.ts       Bounded concurrency LRU for video players
+├── tests/
+│   └── content.lock.json             Immutable Content Fixture
+└── tools/
+    ├── build-assets.py               Pillow asset processor
+    └── build-data.py                 Authoritative Python data generator
 ```
 
-## Running it
+---
 
-Open `index.html` directly in your browser — it works directly from `file://`, which is why `data.js` exposes a plain `window.DATA` global rather than an ES module.
+## Running Locally
 
-For a local server:
-
+### Development Server
 ```bash
-npx --yes serve -l 5173 .
+npm run dev
+```
+Visit `http://localhost:3000`.
+
+### Content Verification Gate (Prime Directive I)
+```bash
+npm run verify-content
+```
+Enforces 100% byte-identical content preservation against `tests/content.lock.json`, zero `DaVinci` occurrences, and exact 52-video integrity.
+
+### Production Static Export
+```bash
+npm run build
+```
+Emits static distribution in `out/`.
+
+### Previewing Production Build
+```bash
+npx serve out
 ```
 
-## Section Order (DOM-authoritative)
+---
 
-1. `01 About Me` (`#about`) — 3-layer parallax hero with torn-paper collage portrait and spec sheet.
-2. `02 Selected Works` (`#works`) — 100svh lead reel + 5 full-bleed layered chapters + horizontal rail + fanned Conroy deck.
-3. `03 Gallery` (`#gallery`) — All 52 unique uploads in one responsive masonry grid with 5 kicker filter chips.
-4. `04 Toolkit` (`#skills`) — 15 skills with sticky terracotta highlight band and clipped inverted text reveal.
-5. `05 Services` (`#services`) — 6 stacking sheets (scaling to .97 on scroll) featuring single `--indigo` accent sheet.
-6. `06 Contact` (`#contact`) — Display headline with Ephesis script, direct contact rows, rotating circular badge, and simplified 3-field form (Name, Email, Message).
-7. `07 Thank You` (`#thankyou`) — Terracotta sheet with mirrored typography and footer.
+## The Video Protocol
 
-`buildNav()` dynamically computes section numbering `01…07` from DOM order on load.
+- **Two-Tier Video Architecture**:
+  - **Tier 1 (Rest)**: Local multi-resolution WebP posters with blur-up LQIPs.
+  - **Tier 2 (Intent)**: Custom lightweight `VimeoFacade` (~60 lines, no external iframe SDK) loaded only upon user tap/click. Headless `PlayerChrome` with custom play/pause, timecode, progress scrubbing, and fullscreen.
+- **Bounded Concurrency LRU**: Enforces max 1 full video with sound at any time.
+- **Ambient Tone Propagation**: Active video's dominant tone dynamically tints 5 surfaces (ambient glow, hairline rules, progress rail, chapter numerals, and WebGL shader) via CSS `@property`.
 
-## Video System
+---
 
-- **Zero initial `<iframe>` elements.** Zero Vimeo requests on cold load.
-- Poster-first placeholders with explicit aspect ratios (`--ar`) and dimensions for **0 CLS**.
-- Single `IntersectionObserver` with LRU eviction enforcing `MAX_LIVE` concurrency (**2** on desktop, **1** on mobile).
-- Real unmount teardown (`src='about:blank'`, `iframe.remove()`).
-- Mode swap: silent looping previews (`mode: 'loop'`, `background=1`) vs full sound player (`mode: 'play'`) on tap/click.
-- Ambient `--tone` glow dynamically follows the active reel, clamped to palette by blending 65% tone + 35% ground.
+## License & Copyright
 
-## Changing Content & Regenerating
-
-1. Video list and dominant tones: `build-assets.py` (needs Pillow).
-2. Editorial copy: `build-data.py`.
-3. Run pipeline:
-   ```bash
-   python build-assets.py; python build-data.py
-   ```
+All video edits, motion graphics, and content © 2026 Neel Patel. All rights reserved.

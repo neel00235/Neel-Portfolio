@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@property --tone {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #f67c29;
+}
+
+@property --tone-blend {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgb(246 124 41 / 0.16);
+}
+
+:root {
+  --ground: #13100c;
+  --ground-2: #1b1611;
+  --ground-3: #241d16;
+  --cream: #faf4e8;
+  --cream-2: #e2d7c0;
+  --muted: #948a7b;
+  --terracotta: #f67c29;
+  --kraft: #d6a76c;
+  --wine: #852b36;
+  --indigo: #2c3ea0;
+  --tone: #f67c29;
+  --tone-blend: rgb(246 124 41 / 0.16);
+  --tone-ink: #13100c;
+}
+
+html {
+  background-color: var(--ground);
+  color: var(--cream);
+  overflow-x: clip;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--ground);
+  color: var(--cream);
+  overflow-x: clip;
+  min-height: 100vh;
+}
+
+/* Fraunces WONK 1 declaration */
+.font-display {
+  font-variation-settings: 'WONK' 1, 'opsz' 144;
+}
+
+::selection {
+  background-color: var(--terracotta);
+  color: var(--ground);
+}
+
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ground);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(214, 167, 108, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--terracotta);
+}
+
+/* Subtle architectural hairline grid */
+.grid-overlay {
+  background-size: 80px 80px;
+  background-image: 
+    linear-gradient(to right, rgba(214, 167, 108, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(214, 167, 108, 0.04) 1px, transparent 1px);
+}
+
+/* Ambient Film Grain */
+.film-grain {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
+  background-size: 16px 16px;
+}
+
+/* Hide scrollbar utility */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

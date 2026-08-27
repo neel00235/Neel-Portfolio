@@ -1,0 +1,391 @@
+{
+  "uniqueCount": 52,
+  "placementCount": 53,
+  "sectionCount": 16,
+  "skillCount": 15,
+  "serviceCount": 6,
+  "uniqueIds": [
+    "1220554546",
+    "1220555808",
+    "1220555284",
+    "1220556151",
+    "1219763361",
+    "1219757810",
+    "1219763331",
+    "1219763230",
+    "1219758725",
+    "1220413186",
+    "1220553507",
+    "1220548695",
+    "1220554808",
+    "1220559375",
+    "1220557252",
+    "1220559007",
+    "1220552857",
+    "1220550982",
+    "1220550831",
+    "1220550347",
+    "1220549555",
+    "1220549430",
+    "1220549151",
+    "1220548698",
+    "1220548696",
+    "1219767934",
+    "1219766019",
+    "1219758002",
+    "1220556772",
+    "1220556182",
+    "1220556261",
+    "1219757999",
+    "1219760653",
+    "1220413187",
+    "1219766024",
+    "1219777661",
+    "1220553072",
+    "1219776317",
+    "1220552662",
+    "1220557262",
+    "1220553768",
+    "1220548697",
+    "1219766021",
+    "1219779416",
+    "1219778853",
+    "1219779517",
+    "1220745541",
+    "1220411975",
+    "1220411973",
+    "1220411974",
+    "1219758000",
+    "1220554545"
+  ],
+  "slugs": [
+    "mumbai",
+    "jackie-chan-cinematic",
+    "shes-running-out-the-door",
+    "conroy-cinematic-reel",
+    "ankit-tiwari-live-at-nirma",
+    "lj-masked-edit",
+    "stranger-things",
+    "lj-velocity-poster-boy",
+    "house-of-hobos",
+    "rock-your-body",
+    "ruthless-lj",
+    "riverfront-montage",
+    "ahmedabad-brts",
+    "abhivyakti",
+    "radiohead",
+    "auditorium-jamming",
+    "conroy-reel-01",
+    "conroy-reel-02",
+    "conroy-reel-03",
+    "conroy-reel-04",
+    "conroy-reel-05",
+    "conroy-reel-06",
+    "conroy-reel-07",
+    "conroy-reel-08",
+    "conroy-reel-09",
+    "halaji-tara-hath-vakhanu-rushabh-ahir-live",
+    "nirma-activity-reel",
+    "hackathon-the-full-film",
+    "rushabh-ahir-vertical-cut",
+    "pyaar-kya-hai",
+    "tech-cafe",
+    "hackathon-title-sequence",
+    "card-3d-visual",
+    "enola-holmes",
+    "bioscope-devs-podcast",
+    "vlog-montage",
+    "riverfront-storyline",
+    "love-me-not",
+    "uttarayan",
+    "typography-study",
+    "mumbai-montage",
+    "chalo-chale",
+    "city-on-fire",
+    "tengen-edgy",
+    "tengen-shake",
+    "douma",
+    "giyu-edgy-rotation",
+    "naruto",
+    "havana-gfx",
+    "demon-slayer",
+    "drunk-and-nasty",
+    "concert-personal-cut"
+  ],
+  "titles": {
+    "1220554546": "Mumbai",
+    "1220555808": "Jackie Chan — Cinematic",
+    "1220555284": "She's Running Out the Door",
+    "1220556151": "Conroy — Cinematic Reel",
+    "1219763361": "Ankit Tiwari — Live at Nirma",
+    "1219757810": "LJ — Masked Edit",
+    "1219763331": "Stranger Things",
+    "1219763230": "LJ — Velocity / Poster Boy",
+    "1219758725": "House of Hobos",
+    "1220413186": "Rock Your Body",
+    "1220553507": "Ruthless — LJ",
+    "1220548695": "Riverfront Montage",
+    "1220554808": "Ahmedabad BRTS",
+    "1220559375": "Abhivyakti",
+    "1220557252": "Radiohead",
+    "1220559007": "Auditorium Jamming",
+    "1220552857": "Conroy — Reel 01",
+    "1220550982": "Conroy — Reel 02",
+    "1220550831": "Conroy — Reel 03",
+    "1220550347": "Conroy — Reel 04",
+    "1220549555": "Conroy — Reel 05",
+    "1220549430": "Conroy — Reel 06",
+    "1220549151": "Conroy — Reel 07",
+    "1220548698": "Conroy — Reel 08",
+    "1220548696": "Conroy — Reel 09",
+    "1219767934": "Halaji Tara Hath Vakhanu — Rushabh Ahir Live",
+    "1219766019": "Nirma Activity Reel",
+    "1219758002": "Hackathon — The Full Film",
+    "1220556772": "Rushabh Ahir — Vertical Cut",
+    "1220556182": "Pyaar Kya Hai",
+    "1220556261": "Tech Café",
+    "1219757999": "Hackathon — Title Sequence",
+    "1219760653": "Card — 3D Visual",
+    "1220413187": "Enola Holmes",
+    "1219766024": "Bioscope — Dev's Podcast",
+    "1219777661": "Vlog Montage",
+    "1220553072": "Riverfront Storyline",
+    "1219776317": "Love Me Not",
+    "1220552662": "Uttarayan",
+    "1220557262": "Typography Study",
+    "1220553768": "Mumbai Montage",
+    "1220548697": "Chalo Chale",
+    "1219766021": "City on Fire",
+    "1219779416": "Tengen — Edgy",
+    "1219778853": "Tengen — Shake",
+    "1219779517": "Douma",
+    "1220745541": "Giyu — Edgy Rotation",
+    "1220411975": "Naruto",
+    "1220411973": "Havana GFX",
+    "1220411974": "Demon Slayer",
+    "1219758000": "Drunk & Nasty",
+    "1220554545": "Concert — Personal Cut"
+  },
+  "sections": [
+    {
+      "slug": "absolute-cinema",
+      "title": "Absolute Cinema",
+      "kicker": "Craft",
+      "blurb": "Pure colour and composition. Film-grade looks built from scratch — highlight roll-off, split-toned shadows, restrained contrast — on footage that has to carry a mood before a single word is spoken.",
+      "accent": "#CCBA8E",
+      "workCount": 4
+    },
+    {
+      "slug": "concert-edits",
+      "title": "Concert Edits",
+      "kicker": "Client work",
+      "blurb": "Ankit Tiwari live at Nirma. Stage lighting is the hardest grade there is — blown highlights, coloured wash, no second take. Cut to the performance, graded to keep skin tones intact under moving colour.",
+      "accent": "#E0407A",
+      "workCount": 1
+    },
+    {
+      "slug": "masking",
+      "title": "Masking & Compositing",
+      "kicker": "Craft",
+      "blurb": "Frame-by-frame masking and compositing: subjects lifted from their plates, type threaded behind moving bodies, elements placed inside the scene so the graphic reads as part of the shot.",
+      "accent": "#F27DB5",
+      "workCount": 1
+    },
+    {
+      "slug": "motion-graphics",
+      "title": "Motion Graphics",
+      "kicker": "Craft",
+      "blurb": "After Effects motion work: velocity-driven type, kinetic layout and title systems that move with the cut rather than sitting on top of it. Horizontal and vertical builds.",
+      "accent": "#66FFDE",
+      "workCount": 3
+    },
+    {
+      "slug": "fast-montage",
+      "title": "Fast-Paced Montage",
+      "kicker": "Rhythm",
+      "blurb": "Seven montages cut to the beat. Frame-accurate sync, speed-ramped transitions and a build that keeps escalating — the format that holds a scrolling viewer past the three-second mark.",
+      "accent": "#FE3448",
+      "workCount": 7
+    },
+    {
+      "slug": "brand-films",
+      "title": "Brand Films",
+      "kicker": "Client work",
+      "blurb": "A full campaign for Conroy — one cinematic hero film cut for the brand's landing page, then nine vertical reels carved out of the same shoot for Instagram and YouTube Shorts. One grade, one rhythm, ten deliverables.",
+      "accent": "#E8B04B",
+      "workCount": 10
+    },
+    {
+      "slug": "event-edits",
+      "title": "Event Edits",
+      "kicker": "Client work",
+      "blurb": "Live folk concerts, campus activations and hackathons. Multi-cam coverage cut to the energy of the room, delivered in both horizontal recap and vertical reel formats so the client can post everywhere from one shoot.",
+      "accent": "#FF6F64",
+      "workCount": 6
+    },
+    {
+      "slug": "event-gfx",
+      "title": "Event GFX Animation",
+      "kicker": "Craft",
+      "blurb": "Broadcast-style graphics package for a hackathon — animated title sequence, lower thirds and stingers built to hold up on a projector and on a phone.",
+      "accent": "#7AB9E0",
+      "workCount": 1
+    },
+    {
+      "slug": "3d-visualization",
+      "title": "3D Visualization",
+      "kicker": "Craft",
+      "blurb": "Product visualisation built in 3D — a card rendered, lit and animated for a vertical spot, then graded to match the rest of the brand's footage.",
+      "accent": "#A78BFA",
+      "workCount": 1
+    },
+    {
+      "slug": "smooth-movie",
+      "title": "Smooth Movie Edits",
+      "kicker": "Rhythm",
+      "blurb": "The opposite discipline. Long, unhurried cuts that let a performance breathe, with transitions you feel rather than notice.",
+      "accent": "#9BB8A8",
+      "workCount": 1
+    },
+    {
+      "slug": "podcast",
+      "title": "Podcast Edits",
+      "kicker": "Long form",
+      "blurb": "Multi-cam podcast editing — clean speaker cuts, dead-air tightening, dialogue levelling and a consistent grade across cameras that never quite match.",
+      "accent": "#F0A868",
+      "workCount": 1
+    },
+    {
+      "slug": "vlog",
+      "title": "Vlog Montage",
+      "kicker": "Long form",
+      "blurb": "Travel and lifestyle montage cut for retention: strong cold open, momentum through the middle, a landing that earns the last frame.",
+      "accent": "#6FD08C",
+      "workCount": 1
+    },
+    {
+      "slug": "nostalgic",
+      "title": "Nostalgic Edits",
+      "kicker": "Rhythm",
+      "blurb": "Seven quieter edits built on warmth and restraint — grain, gentle halation, typography used as punctuation. Made to feel remembered rather than watched.",
+      "accent": "#C08457",
+      "workCount": 7
+    },
+    {
+      "slug": "anime-grade",
+      "title": "Anime Colour Grading",
+      "kicker": "Study",
+      "blurb": "Grading animation is a different problem to grading footage — flat cel colour, hard line art, no film response to lean on. These rebuild depth and atmosphere into already-finished frames.",
+      "accent": "#3D6681",
+      "workCount": 3
+    },
+    {
+      "slug": "anime-fast",
+      "title": "Fast-Paced Anime",
+      "kicker": "Study",
+      "blurb": "High-intensity anime edits: rotation and shake rigs, impact frames, transitions timed to the frame. Technical exercises in how hard a cut can hit.",
+      "accent": "#FF9E3D",
+      "workCount": 4
+    },
+    {
+      "slug": "personal",
+      "title": "Personal Edits",
+      "kicker": "Study",
+      "blurb": "Edits made for no client and no brief — where the transitions and grades that later end up in commercial work get tried out first.",
+      "accent": "#B9966E",
+      "workCount": 2
+    }
+  ],
+  "skills": [
+    {
+      "name": "Colour Grading",
+      "desc": "The reason most edits either feel cinematic or feel flat. Primary balance, secondary isolation, split-toned shadows and highlight roll-off — building a look that carries the mood of the story instead of sitting on a LUT."
+    },
+    {
+      "name": "After Effects — VFX & Compositing",
+      "desc": "Where the hard problems get solved. Multi-layer compositing, clean-up, screen replacement, light wrap and integration work that makes added elements read as though they were shot in camera."
+    },
+    {
+      "name": "Video Rescue",
+      "desc": "Underexposed, noisy, wrongly white-balanced, shot on the wrong settings — I can take footage a client has written off and pull a usable, good-looking cut out of it. Denoise, recover, regrade, stabilise, resharpen."
+    },
+    {
+      "name": "Masking & Rotoscoping",
+      "desc": "Frame-by-frame subject isolation. Type that passes behind a moving person, objects removed from a plate, selective grades that follow a face through a shot."
+    },
+    {
+      "name": "Motion Tracking",
+      "desc": "2D and camera tracking to pin graphics, text and replacements into moving footage so they hold their place through handheld, whip pans and speed ramps."
+    },
+    {
+      "name": "Logo & Brand Animation",
+      "desc": "Identity in motion — logo builds, stingers and end cards with easing and weight that match how the brand is supposed to feel."
+    },
+    {
+      "name": "Kinetic Typography",
+      "desc": "Type treated as a performer. Layout, timing and velocity worked so the words land on the beat and carry meaning rather than just filling frame."
+    },
+    {
+      "name": "Cinematography",
+      "desc": "Full working knowledge of the camera — exposure triangle, shutter angle, picture profiles, log capture, lens choice and movement. I can shoot the footage I'd want to be handed as an editor."
+    },
+    {
+      "name": "Lighting",
+      "desc": "Shaping with key, fill and separation, colour temperature control and practical sources — so the grade starts from something worth grading."
+    },
+    {
+      "name": "Premiere Pro",
+      "desc": "The assembly room. Multi-cam sync, proxy workflows, nested sequence structures and delivery-ready exports for every platform spec."
+    },
+    {
+      "name": "CapCut — Advanced",
+      "desc": "Pushed well past template territory. Used deliberately for speed on short-form turnarounds where a same-day deliverable matters more than a round trip."
+    },
+    {
+      "name": "Live Stream Banner Animation",
+      "desc": "Looping overlays, animated lower thirds, scoreboards and transition stingers built to run live without dropping frames."
+    },
+    {
+      "name": "Sound Engineering",
+      "desc": "Dialogue cleanup, levelling and de-noising, music bedding, ducking and sound design hits. Half of how 'cinematic' an edit feels is what you're hearing."
+    },
+    {
+      "name": "Creative Direction",
+      "desc": "Turning a loose brief into a treatment — reference, structure, pacing and look decided before the timeline opens."
+    },
+    {
+      "name": "Content Creation",
+      "desc": "Understanding the platform as well as the craft: hooks, retention curves, aspect ratios and what actually makes someone stop scrolling."
+    }
+  ],
+  "services": [
+    {
+      "name": "Cinematic Colour Grading",
+      "desc": "Mood-driven grading that gives footage a premium, film-like look. Shot matching across cameras, skin tones protected, a bespoke look built per project — not a preset dropped on a timeline."
+    },
+    {
+      "name": "Motion Graphics & Typography",
+      "desc": "Text animation, title systems and animated graphics that make content stand out and hold a viewer's eye exactly where you need it."
+    },
+    {
+      "name": "Reels & Short-Form",
+      "desc": "Fast-paced, trend-driven vertical edits built for reach — engineered around the hook, the beat and the loop."
+    },
+    {
+      "name": "Long-Form & After-Movies",
+      "desc": "YouTube episodes, event after-movies and documentary-style cuts structured for retention from cold open to end card."
+    },
+    {
+      "name": "High-Impact Action Edits",
+      "desc": "Heavy-editing builds — speed ramps, impact frames, camera shake rigs, compositing and effects work for edits that need to hit hard."
+    },
+    {
+      "name": "Trending Effects & Transitions",
+      "desc": "Viral editing styles and transitions applied with judgement, to lift engagement without making the work look disposable."
+    }
+  ],
+  "stats": {
+    "edits": 52,
+    "categories": 16
+  }
+}
