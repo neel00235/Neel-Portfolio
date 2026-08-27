@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(echo \"---exit:$?\")",
+      "WebFetch(domain:casadisolare.com)",
+      "WebFetch(domain:tlb.betteroff.studio)",
+      "WebFetch(domain:www.findworkhappiness.com)",
+      "WebFetch(domain:gilhuybrecht.com)"
+    ]
+  }
+}

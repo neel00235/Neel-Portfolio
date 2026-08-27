@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neel Patel — Video Editor &amp; Colourist</title>
+<meta name="description" content="Award-grade portfolio of Neel Patel — video editor & colourist specialised in colour grading, story-driven edits, motion graphics and high-impact short-form.">
+<meta name="theme-color" content="#13100c">
+<meta name="author" content="Neel Patel">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Neel Patel — Video Editor &amp; Colourist">
+<meta property="og:description" content="Colour grading and story-driven edits. Raw footage turned into visuals that don't just get watched — they get felt.">
+<meta property="og:image" content="assets/neel.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<!-- Preload LCP Display Font -->
+<link rel="preload" href="assets/fonts/fraunces-var-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="css/main.css">
+
+<!-- Warm Vimeo connection -->
+<link rel="preconnect" href="https://player.vimeo.com">
+<link rel="preconnect" href="https://i.vimeocdn.com">
+</head>
+
+<body>
+
+<!-- ── SVG definitions ───────────────────────────────────────────────────── -->
+<svg width="0" height="0" class="svg-defs" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;">
+  <defs>
+    <clipPath id="tornPaper" clipPathUnits="objectBoundingBox">
+      <path d="M0.01,0.01 C0.15,-0.005 0.3,0.015 0.45,-0.005 C0.6,0.015 0.75,-0.01 0.99,0.01 L0.99,0.99 C0.85,0.985 0.7,1.01 0.55,0.985 C0.4,1.005 0.25,0.985 0.01,0.99 Z" />
+    </clipPath>
+    <path id="badgeCirclePath" d="M 48, 48 m -36, 0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0" />
+    <path id="scrollCirclePath" d="M 48, 48 m -34, 0 a 34,34 0 1,1 68,0 a 34,34 0 1,1 -68,0" />
+  </defs>
+</svg>
+
+<!-- ── fixed background texture stack ────────────────────────────────────── -->
+<div class="liquid-mesh" aria-hidden="true"></div>
+<div class="grid-bg" aria-hidden="true"></div>
+<div class="ambient-glow" id="ambientGlow" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<!-- ── custom cursor (pointer:fine desktop only) ─────────────────────────── -->
+<div class="cursor" id="cursor" aria-hidden="true">
+  <span class="cursor__ring"></span>
+  <span class="cursor__dot"></span>
+  <span class="cursor__label"></span>
+</div>
+
+<!-- ── fixed persistent chrome ───────────────────────────────────────────── -->
+<header class="hdr" id="hdr">
+  <a class="hdr__mark" href="#about" data-cursor="Top">
+    <span>NEEL</span><span>PATEL</span>
+  </a>
+
+  <nav class="hdr__nav" aria-label="Main Navigation">
+    <a href="#about" data-spy="about">About</a>
+    <a href="#works" data-spy="works">Work</a>
+    <a href="#gallery" data-spy="gallery">Gallery</a>
+    <a href="#skills" data-spy="skills">Toolkit</a>
+    <a href="#services" data-spy="services">Services</a>
+    <a href="#contact" data-spy="contact">Contact</a>
+  </nav>
+
+  <p class="hdr__now" id="hdrNow" aria-hidden="true"></p>
+
+  <button class="hdr__menu-btn" id="menuBtn" aria-expanded="false" aria-controls="menu" aria-label="Toggle index menu">
+    <span id="menuBtnTxt">Index</span>
+    <span class="hdr__burger" aria-hidden="true"><i></i><i></i></span>
+  </button>
+</header>
+
+<!-- Mobile menu overlay (static fallback list, updated by buildNav()) -->
+<nav class="menu" id="menu" aria-label="Table of contents">
+  <ol class="menu__list" id="menuList">
+    <li><a href="#about"><span class="menu__n">01</span><span class="menu__t">About Me</span></a></li>
+    <li><a href="#works"><span class="menu__n">02</span><span class="menu__t">Selected Works</span></a></li>
+    <li><a href="#gallery"><span class="menu__n">03</span><span class="menu__t">Gallery</span></a></li>
+    <li><a href="#skills"><span class="menu__n">04</span><span class="menu__t">Toolkit</span></a></li>
+    <li><a href="#services"><span class="menu__n">05</span><span class="menu__t">Services</span></a></li>
+    <li><a href="#contact"><span class="menu__n">06</span><span class="menu__t">Contact</span></a></li>
+    <li><a href="#thankyou"><span class="menu__n">07</span><span class="menu__t">Thank You</span></a></li>
+  </ol>
+  <div class="menu__foot">
+    <a href="mailto:neelpatel00235@gmail.com">neelpatel00235@gmail.com</a>
+    <a href="tel:+919106730866">+91 91067 30866</a>
+    <a href="https://instagram.com/neelvt" target="_blank" rel="noopener">@neelvt</a>
+  </div>
+</nav>
+
+<!-- Persistent vertical social rail (desktop) -->
+<aside class="rail-social" aria-label="Social Links">
+  <a href="https://instagram.com/neelvt" target="_blank" rel="noopener" data-cursor="Open">Instagram</a>
+  <a href="mailto:neelpatel00235@gmail.com" data-cursor="Copy" data-copy="neelpatel00235@gmail.com">Email</a>
+  <a href="tel:+919106730866" data-cursor="Call">Phone</a>
+</aside>
+
+<!-- Persistent circular ↗ button -->
+<a class="btn-contact-fixed" id="btnContactFixed" href="#contact" aria-label="Start a project" data-cursor="Enquire">
+  <i class="arrow"></i>
+</a>
+
+<!-- Scroll progress rail -->
+<div class="progress-rail" id="progressRail" aria-hidden="true"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     MAIN CONTENT (DOM ORDER IS AUTHORITATIVE FOR BUILDNAV())
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<main>
+
+<!-- ══ 01 · ABOUT ME — COLLAGE HERO WITH SCROLL-DRIVEN CURTAIN ═══════════════ -->
+<section class="hero-stage" id="about" data-nav="About Me">
+  <div class="hero-sticky">
+
+    <div class="hero">
+      <p class="sect__label"><span>01</span>About Me</p>
+
+      <div class="hero__layers">
+        <!-- Layer 1 (back, parallax 0.15): giant name passes behind head -->
+        <p class="hero__back font-display" aria-hidden="true">NEEL PATEL</p>
+
+        <!-- Layer 2 & 3: Hero Grid -->
+        <div class="hero__grid pair">
+
+          <!-- Left column: Layer 2 (mid, parallax 0.42) Collage Portrait Card -->
+          <div class="hero__mid" data-anim="left">
+            <div class="collage-wrap">
+              <div class="collage-card-back" aria-hidden="true"></div>
+
+              <figure class="collage-card-main">
+                <div class="collage-card__inner">
+                  <picture>
+                    <source srcset="assets/neel-collage.webp" type="image/webp">
+                    <img class="collage-card__photo" src="assets/neel.jpg" alt="Portrait collage of Neel Patel"
+                         width="1400" height="1867" fetchpriority="high" decoding="async">
+                  </picture>
+
+                  <div class="collage-decor" aria-hidden="true">
+                    <div class="collage-shape-wine"></div>
+                    <svg class="collage-fern" viewBox="0 0 100 100" fill="currentColor">
+                      <path d="M10 90 Q 30 50 80 10 Q 50 40 40 80 Z" />
+                    </svg>
+                  </div>
+                </div>
+                <div class="collage-tape-1" aria-hidden="true"></div>
+                <div class="collage-tape-2" aria-hidden="true"></div>
+                <figcaption class="label" style="margin-top:0.85rem;font-size:0.65rem;">
+                  NEEL PATEL <svg class="label__star" viewBox="0 0 12 12" width="8" height="8" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg> EDITOR · COLOURIST
+                </figcaption>
+              </figure>
+            </div>
+
+            <dl class="hero__specs">
+              <div><dt>Role</dt><dd>Editor · Colourist · Motion</dd></div>
+              <div><dt>Based in</dt><dd>Ahmedabad, India</dd></div>
+              <div><dt>Availability</dt><dd><i class="dot"></i>Open for work</dd></div>
+              <div><dt>Reply within</dt><dd>24 hours</dd></div>
+              <div><dt>Primary stack</dt><dd>Premiere Pro · After Effects · CapCut</dd></div>
+              <div><dt>Delivers</dt><dd>16:9 · 9:16 · 4:3 · 1:1</dd></div>
+            </dl>
+          </div>
+
+          <!-- Right column: Layer 3 (front, parallax 0.8) Editorial copy -->
+          <div class="hero__front" data-anim="right">
+            <p class="kicker"><i class="dot"></i>Ahmedabad, India — open for work</p>
+
+            <div class="hero__signature">
+              <span class="font-script" style="font-size:2.2rem;">Neel Patel</span>
+              <p class="hero__role">Video&nbsp;Editor <b>·</b> Colourist</p>
+            </div>
+
+            <p class="hero__lead">
+              I'm a video editor specialised in <em>colour grading</em> and
+              <em>story-driven edits</em> — turning raw footage into visuals that don't
+              just get watched, they get <span class="font-script">felt</span>.
+            </p>
+
+            <p class="hero__p">
+              Every frame is crafted with precision to build a real connection and hold
+              a viewer's attention right through to the last frame.
+            </p>
+            <p class="hero__p">
+              My work sits where technical craft meets audience retention: a strong focus on
+              <em>colour grading</em>, <em>GFX animation</em>, <em>pacing</em> and
+              <em>mood</em>, backed by a real read on social-media analytics — what
+              makes someone stop scrolling, and what makes them stay.
+            </p>
+            <p class="hero__p">
+              I create content built to keep the viewer hooked. Every project I take on
+              is driven by one goal — making visuals that don't just get
+              <em>seen</em>, but <em>felt</em>.
+            </p>
+
+            <ul class="hero__tags">
+              <li>Colour Grading</li>
+              <li>GFX Animation</li>
+              <li>Pacing &amp; Mood</li>
+              <li>Social Analytics</li>
+              <li>Storytelling</li>
+              <li>Cinematography</li>
+            </ul>
+
+            <dl class="hero__stats">
+              <div><dt>Edits in this reel</dt><dd id="statEdits">52</dd></div>
+              <div><dt>Disciplines</dt><dd id="statCats">16</dd></div>
+              <div><dt>Years on timeline</dt><dd>4+</dd></div>
+            </dl>
+
+            <div class="hero__cta">
+              <a class="btn btn--solid" href="#works" data-cursor="Watch">
+                <span>Watch the reel</span><i class="arrow"></i>
+              </a>
+              <a class="btn" href="#contact" data-cursor="Enquire">
+                <span>Start a project</span><i class="arrow"></i>
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll-Driven Opening Curtains (Bisected Single Title — Namrata Style) -->
+    <div class="curtain-split" id="curtainSplit" aria-hidden="true">
+      
+      <!-- Top Band (Top Half of the Bisected Title) -->
+      <div class="curtain-band curtain-band--top" id="curtainTop">
+        <div class="curtain-band__top-bar">
+          <p class="label" style="color:var(--on-terracotta);">P O R T F O L I O &nbsp; 2 0 2 6 <svg class="label__star" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg></p>
+          <span class="curtain-script font-script">Neel Patel</span>
+          <p class="label" style="color:var(--on-terracotta);">AHMEDABAD, INDIA</p>
+        </div>
+
+        <div class="curtain-split-wrapper curtain-split-wrapper--top">
+          <h1 class="curtain-giant-word font-display">NEEL PATEL</h1>
+        </div>
+      </div>
+
+      <!-- Bottom Band (Bottom Half of the Bisected Title) -->
+      <div class="curtain-band curtain-band--bottom" id="curtainBottom">
+        <div class="curtain-split-wrapper curtain-split-wrapper--bottom">
+          <h1 class="curtain-giant-word font-display">NEEL PATEL</h1>
+        </div>
+
+        <div class="curtain-band__bottom-bar">
+          <div class="curtain-band__role">
+            <p class="label" style="color:var(--on-terracotta);">VIDEO EDITOR &amp; COLOURIST</p>
+            <p class="curtain-sub-tagline">Story-driven edits · Precision color · Social rhythm</p>
+          </div>
+
+          <div class="curtain-scroll-badge">
+            <div class="badge-rot" aria-hidden="true">
+              <svg class="badge-rot__svg" viewBox="0 0 96 96">
+                <text class="badge-rot__text" style="fill:var(--on-terracotta);"><textPath href="#scrollCirclePath">SCROLL · SCROLL · SCROLL · </textPath></text>
+              </svg>
+              <div class="badge-rot__center" style="background:#13100c;color:var(--terracotta);box-shadow:0 0 14px rgba(0,0,0,0.4);"><i class="arrow arrow--down"></i></div>
+            </div>
+            <span class="font-mono curtain-scroll-text">SCROLL TO REVEAL</span>
+          </div>
+
+          <p class="label" style="color:var(--on-terracotta);">2026 EDITION</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ 02 · SELECTED WORKS ══════════════════════════════════════════════════ -->
+<section class="works" id="works" data-nav="Selected Works">
+  <div class="sect__head">
+    <p class="sect__label"><span>02</span>Selected Works</p>
+    <p class="label">S E L E C T &nbsp; W O R K <svg class="label__star" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg></p>
+    <h2 class="sect__title" data-split>Selected works</h2>
+    <p class="sect__intro" data-anim="up">
+      The lead film plays on its own. Everything below streams only as it reaches
+      your viewport — zero video requests at first paint.
+    </p>
+  </div>
+
+  <!-- 6.2.1 Lead Reel (100svh full-bleed, unscaled iframe, sound toggle) -->
+  <div class="reel" id="reel"><!-- built by app.js --></div>
+
+  <!-- 6.2.2 Five Layered Chapters (one from each kicker group) -->
+  <div class="chapters" id="chapters"><!-- built by app.js --></div>
+
+  <!-- 6.2.3 Horizontal Rail (Desktop scroll rail / Mobile touch carousel) -->
+  <div class="rail-section" id="railSection">
+    <div class="sect__head">
+      <p class="label">E X P L O R A T I O N S <svg class="label__star" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg></p>
+      <h3 class="sect__title">Timeline selections</h3>
+    </div>
+    <div class="rail-viewport">
+      <div class="rail-track" id="railTrack"><!-- built by app.js --></div>
+    </div>
+  </div>
+
+  <!-- 6.2.4 Conroy Fanned Deck (1 film + 9 cuts) -->
+  <div class="conroy-wrap" id="conroyWrap">
+    <div class="sect__head" style="margin-bottom:1rem;">
+      <p class="label">C A M P A I G N &nbsp; D E C K <svg class="label__star" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg></p>
+      <h3 class="sect__title">Conroy Campaign</h3>
+      <p class="sect__intro">One shoot, one grade, ten deliverables — 1 horizontal film + 9 vertical cuts.</p>
+    </div>
+    <div class="conroy-deck" id="conroyDeck"><!-- built by app.js --></div>
+    <p class="conroy-deck__hint">CONROY CAMPAIGN — 1 FILM + 9 CUTS · TAP TO FAN</p>
+  </div>
+</section>
+
+<!-- ══ 03 · GALLERY (ALL 52 EDITS) ═══════════════════════════════════════════ -->
+<section class="gallery" id="gallery" data-nav="Gallery">
+  <div class="gallery__banner">
+    <div class="gallery__sheet" aria-hidden="true"></div>
+    <p class="sect__label"><span>03</span>Gallery</p>
+    <p class="label">A L L &nbsp; E D I T S <svg class="label__star" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg></p>
+    <h2 class="gallery__title">
+      <span class="gallery__cursive font-script">Selected Works</span>
+      <span class="font-display" data-split>GALLERY</span>
+    </h2>
+    <p class="sect__intro" style="position:relative;z-index:2;">
+      All 52 edits in one direct scroll. No modals, no clicks required. Tap any tile for sound.
+    </p>
+  </div>
+
+  <!-- 5 Kicker Filter Chips with Category Counts -->
+  <div class="gallery__filters" id="galleryFilters" role="toolbar" aria-label="Filter works">
+    <button class="gallery__chip is-active" aria-pressed="true" data-filter="all">All (52)</button>
+    <button class="gallery__chip" aria-pressed="false" data-filter="Client work">Client work (17)</button>
+    <button class="gallery__chip" aria-pressed="false" data-filter="Craft">Craft (7)</button>
+    <button class="gallery__chip" aria-pressed="false" data-filter="Rhythm">Rhythm (15)</button>
+    <button class="gallery__chip" aria-pressed="false" data-filter="Long form">Long form (3)</button>
+    <button class="gallery__chip" aria-pressed="false" data-filter="Study">Study (10)</button>
+  </div>
+
+  <!-- Responsive Masonry Grid -->
+  <div class="gallery__grid" id="galleryGrid"><!-- built by app.js --></div>
+</section>
+
+<!-- ══ 04 · TOOLKIT / MY SKILLS ══════════════════════════════════════════════ -->
+<section class="skills" id="skills" data-nav="Toolkit">
+  <div class="skills__grid pair">
+
+    <div class="skills__head" data-anim="left">
+      <p class="sect__label"><span>04</span>My Skills</p>
+      <p class="label">T O O L K I T <svg class="label__star" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg></p>
+      <h2 class="sect__title" data-split>The toolkit</h2>
+      <p class="sect__intro">
+        Ordered by what actually moves the needle on a cut — not by what's easiest to list.
+      </p>
+      <dl class="skills__meta">
+        <div><dt>Disciplines listed</dt><dd id="skillCount">15</dd></div>
+        <div><dt>Core</dt><dd>Grade · VFX · Motion · Sound</dd></div>
+      </dl>
+    </div>
+
+    <div class="skills__stage" data-anim="right">
+      <div class="skills__band" id="skillsBand" aria-hidden="true"></div>
+      <div class="skills__list" id="skillsList"><!-- built by app.js --></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ 05 · SERVICES ═════════════════════════════════════════════════════════ -->
+<section class="services" id="services" data-nav="Services">
+  <div class="sect__head">
+    <p class="sect__label"><span>05</span>Services</p>
+    <p class="label">W H A T &nbsp; I &nbsp; D O <svg class="label__star" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg></p>
+    <h2 class="sect__title" data-split>What I deliver</h2>
+    <p class="sect__intro" data-anim="up">
+      Scoped, priced and delivered per project — from a single reel to a full campaign package.
+    </p>
+  </div>
+
+  <div class="services__stack" id="servicesStack"><!-- built by app.js --></div>
+</section>
+
+<!-- ══ 06 · CONTACT ══════════════════════════════════════════════════════════ -->
+<section class="contact" id="contact" data-nav="Contact">
+  <div class="contact__header">
+    <p class="sect__label"><span>06</span>Contact</p>
+    <p class="label">C O N N E C T <svg class="label__star" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg></p>
+    <h2 class="contact__title font-display" data-split>
+      Let's cut <span class="font-script">something</span> worth <span class="font-display">WATCHING</span>
+    </h2>
+  </div>
+
+  <div class="cta pair">
+
+    <div class="cta__side" data-anim="left">
+      <div class="contact-rows">
+        <a class="contact-row" href="mailto:neelpatel00235@gmail.com" data-cursor="Copy" data-copy="neelpatel00235@gmail.com">
+          <span>neelpatel00235@gmail.com</span><i class="arrow"></i>
+        </a>
+        <a class="contact-row" href="tel:+919106730866" data-cursor="Call">
+          <span>+91 91067 30866</span><i class="arrow"></i>
+        </a>
+        <a class="contact-row" href="https://instagram.com/neelvt" target="_blank" rel="noopener" data-cursor="Open">
+          <span>@neelvt</span><i class="arrow"></i>
+        </a>
+      </div>
+
+      <div class="badge-rot" style="margin-top:1.5rem;" aria-hidden="true">
+        <svg class="badge-rot__svg" viewBox="0 0 96 96">
+          <text class="badge-rot__text"><textPath href="#badgeCirclePath">OPEN TO WORK · CONTACT ME · </textPath></text>
+        </svg>
+        <div class="badge-rot__center"><i class="arrow"></i></div>
+      </div>
+    </div>
+
+    <!-- Simplified 3-Field Contact Form -->
+    <form class="cta__card" id="contactForm" data-anim="right" novalidate>
+      <div class="field">
+        <label for="fName">Name</label>
+        <input id="fName" name="name" type="text" autocomplete="name" required maxlength="80">
+      </div>
+
+      <div class="field">
+        <label for="fEmail">Email</label>
+        <input id="fEmail" name="email" type="email" autocomplete="email" required maxlength="120">
+      </div>
+
+      <div class="field">
+        <label for="fMessage">Message</label>
+        <textarea id="fMessage" name="message" rows="4" required maxlength="1200"></textarea>
+      </div>
+
+      <!-- spam trap -->
+      <div class="field field--trap" aria-hidden="true">
+        <label for="fGotcha">Leave this empty</label>
+        <input id="fGotcha" name="_gotcha" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <button class="btn btn--solid cta__send" type="submit" data-cursor="Send">
+        <span>Send message</span><i class="arrow"></i>
+      </button>
+
+      <p class="cta__status" id="formStatus" role="status" aria-live="polite"></p>
+    </form>
+
+  </div>
+</section>
+
+<!-- ══ 07 · THANK YOU ════════════════════════════════════════════════════════ -->
+<section class="thanks" id="thankyou" data-nav="Thank You">
+  <div class="thanks__inner">
+    <div class="thanks__name-band">
+      <p class="label" style="color:var(--kraft);margin-bottom:0.75rem;">T H A N K &nbsp; Y O U <svg class="label__star" viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M6 0 L7.5 4.5 L12 6 L7.5 7.5 L6 12 L4.5 7.5 L0 6 L4.5 4.5 Z" fill="currentColor"/></svg></p>
+      <span class="thanks__cursive font-script">Neel Patel</span>
+      <h2 class="thanks__mega font-display" data-split>THANK YOU</h2>
+    </div>
+
+    <p class="thanks__lead">
+      You made it to the last frame — which, if I've done my job, is the whole
+      point. If something in here felt like it belonged to your project, the reel
+      ends and the conversation starts.
+    </p>
+
+    <div class="thanks__foot">
+      <p>Neel Patel — Video Editor &amp; Colourist · Ahmedabad, India</p>
+      <a class="thanks__back" href="#about" data-cursor="Top">
+        <i class="arrow arrow--up"></i><span>Back to top</span>
+      </a>
+      <p>© <span id="year">2026</span></p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,593 @@
+{
+ "sections": [
+  {
+   "slug": "absolute-cinema",
+   "title": "Absolute Cinema",
+   "accent": "#CCBA8E",
+   "works": [
+    {
+     "id": "1220554546",
+     "title": "MumbaiEdit",
+     "duration": 30,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#66584c",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220555808",
+     "title": "JakieChanCinematicEdit",
+     "duration": 16,
+     "thumbW": 1280,
+     "thumbH": 960,
+     "tone": "#22281b",
+     "aspect": "4:3"
+    },
+    {
+     "id": "1220555284",
+     "title": "ShesRunningOutTheDoor",
+     "duration": 37,
+     "thumbW": 1280,
+     "thumbH": 725,
+     "tone": "#6f6050",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220556151",
+     "title": "ConroyCinematic",
+     "duration": 22,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#564b41",
+     "aspect": "16:9"
+    }
+   ]
+  },
+  {
+   "slug": "concert-edits",
+   "title": "Concert Edits",
+   "accent": "#E0407A",
+   "works": [
+    {
+     "id": "1219763361",
+     "title": "AnkitTiwariNirma",
+     "duration": 42,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#1d110d",
+     "aspect": "16:9"
+    }
+   ]
+  },
+  {
+   "slug": "masking",
+   "title": "Masking & Compositing",
+   "accent": "#F27DB5",
+   "works": [
+    {
+     "id": "1219757810",
+     "title": "LJmaskedEdit",
+     "duration": 20,
+     "thumbW": 1280,
+     "thumbH": 960,
+     "tone": "#23201b",
+     "aspect": "4:3"
+    }
+   ]
+  },
+  {
+   "slug": "motion-graphics",
+   "title": "Motion Graphics",
+   "accent": "#66FFDE",
+   "works": [
+    {
+     "id": "1219763331",
+     "title": "StrangerThings",
+     "duration": 47,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#b11a09",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1219763230",
+     "title": "LJVelocityPosterBoy",
+     "duration": 18,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#9f8874",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1219758725",
+     "title": "HouseOfHobos",
+     "duration": 12,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#24170a",
+     "aspect": "9:16"
+    }
+   ]
+  },
+  {
+   "slug": "fast-montage",
+   "title": "Fast-Paced Montage",
+   "accent": "#FE3448",
+   "works": [
+    {
+     "id": "1220413186",
+     "title": "RockYourBodyPaced",
+     "duration": 24,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#b76f62",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220553507",
+     "title": "RuthlessLJEidit",
+     "duration": 18,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#54392e",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220548695",
+     "title": "RiverfrontMontage",
+     "duration": 14,
+     "thumbW": 1280,
+     "thumbH": 721,
+     "tone": "#72100b",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220554808",
+     "title": "AhmedabadBRTS",
+     "duration": 24,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#fc5519",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220559375",
+     "title": "abhivyaktiEdit",
+     "duration": 20,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#453117",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220557252",
+     "title": "RadioheadEdit",
+     "duration": 36,
+     "thumbW": 1280,
+     "thumbH": 719,
+     "tone": "#892737",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220559007",
+     "title": "AuditoruimJamming",
+     "duration": 81,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#210808",
+     "aspect": "16:9"
+    }
+   ]
+  },
+  {
+   "slug": "brand-films",
+   "title": "Brand Films",
+   "accent": "#E8B04B",
+   "works": [
+    {
+     "id": "1220556151",
+     "title": "ConroyCinematic",
+     "duration": 22,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#564b41",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220552857",
+     "title": "conroy1",
+     "duration": 22,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#6e5b55",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220550982",
+     "title": "conroy2",
+     "duration": 19,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#664f48",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220550831",
+     "title": "conroy3",
+     "duration": 17,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#dfd3d1",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220550347",
+     "title": "conroy4",
+     "duration": 34,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#d4caae",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220549555",
+     "title": "conroy5",
+     "duration": 24,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#8b6e66",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220549430",
+     "title": "conroy6",
+     "duration": 14,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#cac6c7",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220549151",
+     "title": "conroy7",
+     "duration": 19,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#73614b",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220548698",
+     "title": "conroy8",
+     "duration": 20,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#d0baac",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220548696",
+     "title": "conroy9",
+     "duration": 12,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#3c4a4c",
+     "aspect": "9:16"
+    }
+   ]
+  },
+  {
+   "slug": "event-edits",
+   "title": "Event Edits",
+   "accent": "#FF6F64",
+   "works": [
+    {
+     "id": "1219767934",
+     "title": "Halaji Tara Hath Vakhanu  Rushabh Ahir Live  RA Live Folk Concert Hungrito",
+     "duration": 47,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#1b1910",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1219766019",
+     "title": "NirmaActivityReel",
+     "duration": 32,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#241c1d",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1219758002",
+     "title": "HackthonALL",
+     "duration": 128,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#5b7075",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220556772",
+     "title": "RushabhAhirVertical",
+     "duration": 42,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#4b3a30",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220556182",
+     "title": "PyaarKyaHaiEdit",
+     "duration": 38,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#c8866b",
+     "aspect": "9:16"
+    },
+    {
+     "id": "1220556261",
+     "title": "TechCafeEdit",
+     "duration": 24,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#938571",
+     "aspect": "9:16"
+    }
+   ]
+  },
+  {
+   "slug": "event-gfx",
+   "title": "Event GFX Animation",
+   "accent": "#7AB9E0",
+   "works": [
+    {
+     "id": "1219757999",
+     "title": "HackathonIntro",
+     "duration": 7,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#01003d",
+     "aspect": "16:9"
+    }
+   ]
+  },
+  {
+   "slug": "3d-visualization",
+   "title": "3D Visualization",
+   "accent": "#A78BFA",
+   "works": [
+    {
+     "id": "1219760653",
+     "title": "Card3DVisual",
+     "duration": 13,
+     "thumbW": 1280,
+     "thumbH": 2276,
+     "tone": "#6e4e62",
+     "aspect": "9:16"
+    }
+   ]
+  },
+  {
+   "slug": "smooth-movie",
+   "title": "Smooth Movie Edits",
+   "accent": "#9BB8A8",
+   "works": [
+    {
+     "id": "1220413187",
+     "title": "EnolaHolmes",
+     "duration": 24,
+     "thumbW": 1280,
+     "thumbH": 961,
+     "tone": "#1d1514",
+     "aspect": "4:3"
+    }
+   ]
+  },
+  {
+   "slug": "podcast",
+   "title": "Podcast Edits",
+   "accent": "#F0A868",
+   "works": [
+    {
+     "id": "1219766024",
+     "title": "Bioscope-Dev'sPodcast",
+     "duration": 127,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#676767",
+     "aspect": "16:9"
+    }
+   ]
+  },
+  {
+   "slug": "vlog",
+   "title": "Vlog Montage",
+   "accent": "#6FD08C",
+   "works": [
+    {
+     "id": "1219777661",
+     "title": "VlogMontage",
+     "duration": 20,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#908363",
+     "aspect": "16:9"
+    }
+   ]
+  },
+  {
+   "slug": "nostalgic",
+   "title": "Nostalgic Edits",
+   "accent": "#C08457",
+   "works": [
+    {
+     "id": "1220553072",
+     "title": "RFstorylineEdit",
+     "duration": 21,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#2b210f",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1219776317",
+     "title": "LoveMeNot",
+     "duration": 34,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#6681f2",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220552662",
+     "title": "uttarayanNostalgic",
+     "duration": 14,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#793506",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220557262",
+     "title": "TypographyEdit",
+     "duration": 9,
+     "thumbW": 1280,
+     "thumbH": 721,
+     "tone": "#837a5f",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220553768",
+     "title": "MumbaiMontageEdit",
+     "duration": 12,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#1c1f13",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220548697",
+     "title": "chaloChaleTypoEdit",
+     "duration": 26,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#171412",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1219766021",
+     "title": "CityOnFire",
+     "duration": 34,
+     "thumbW": 1280,
+     "thumbH": 722,
+     "tone": "#6e5950",
+     "aspect": "16:9"
+    }
+   ]
+  },
+  {
+   "slug": "anime-grade",
+   "title": "Anime Colour Grading",
+   "accent": "#3D6681",
+   "works": [
+    {
+     "id": "1219779416",
+     "title": "TengenEdgy",
+     "duration": 10,
+     "thumbW": 1280,
+     "thumbH": 719,
+     "tone": "#ea4227",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1219778853",
+     "title": "TengenShakeEdit",
+     "duration": 13,
+     "thumbW": 1280,
+     "thumbH": 719,
+     "tone": "#223046",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1219779517",
+     "title": "DoumaEdit",
+     "duration": 15,
+     "thumbW": 1280,
+     "thumbH": 719,
+     "tone": "#c7844e",
+     "aspect": "16:9"
+    }
+   ]
+  },
+  {
+   "slug": "anime-fast",
+   "title": "Fast-Paced Anime",
+   "accent": "#FF9E3D",
+   "works": [
+    {
+     "id": "1220745541",
+     "title": "GiyuEdgyRotation",
+     "duration": 10,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#32575c",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220411975",
+     "title": "NarutoEdit",
+     "duration": 28,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#8f8a7f",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220411973",
+     "title": "HavanaGfx",
+     "duration": 18,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#254243",
+     "aspect": "16:9"
+    },
+    {
+     "id": "1220411974",
+     "title": "DemonSlayerEdit",
+     "duration": 46,
+     "thumbW": 1280,
+     "thumbH": 720,
+     "tone": "#010501",
+     "aspect": "16:9"
+    }
+   ]
+  },
+  {
+   "slug": "personal",
+   "title": "Personal Edits",
+   "accent": "#B9966E",
+   "works": [
+    {
+     "id": "1219758000",
+     "title": "DrunkAndNasty",
+     "duration": 10,
+     "thumbW": 1280,
+     "thumbH": 1707,
+     "tone": "#252423",
+     "aspect": "3:4"
+    },
+    {
+     "id": "1220554545",
+     "title": "PersonalEditConcert",
+     "duration": 16,
+     "thumbW": 1280,
+     "thumbH": 1707,
+     "tone": "#a275b6",
+     "aspect": "3:4"
+    }
+   ]
+  }
+ ]
+}
