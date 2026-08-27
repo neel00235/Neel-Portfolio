@@ -11,6 +11,7 @@ import { Header } from '@/components/layout/Header';
 import { MagneticCursor } from '@/components/cursor/MagneticCursor';
 import { SmoothScroller } from '@/components/scroller/SmoothScroller';
 import { ToneField } from '@/components/canvas/ToneField';
+import { ToneBridge } from '@/components/system/ToneBridge';
 import { META } from '@/data/content';
 
 export const metadata: Metadata = {
@@ -62,9 +63,18 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${fraunces.variable} ${instrumentSerif.variable} ${ephesis.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
     >
-      <body className="relative bg-ground text-cream selection:bg-terracotta selection:text-ground font-sans antialiased overflow-x-clip min-h-screen">
+      <head>
+        <link rel="preconnect" href="https://player.vimeo.com" />
+        <link rel="preconnect" href="https://i.vimeocdn.com" />
+      </head>
+      <body
+        suppressHydrationWarning
+        className="relative bg-ground text-cream selection:bg-terracotta selection:text-ground font-sans antialiased overflow-x-clip"
+      >
+        <ToneBridge />
         {/* Background Tone Shader & Texture stack */}
         <ToneField />
         <div className="fixed inset-0 pointer-events-none grid-overlay z-0 opacity-40" aria-hidden="true" />

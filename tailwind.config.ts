@@ -48,6 +48,7 @@ export default {
         soft: 'cubic-bezier(.4,0,.2,1)',
       },
       keyframes: {
+        fadeIn:    { '0%': { opacity: '0', transform: 'translate3d(0,12px,0)' }, '100%': { opacity: '1', transform: 'none' } },
         marquee:   { '0%': { transform: 'translate3d(0,0,0)' }, '100%': { transform: 'translate3d(-50%,0,0)' } },
         spinSlow:  { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } },
         grain:     { '0%,100%': { transform: 'translate3d(0,0,0)' }, '25%': { transform: 'translate3d(-2%,1%,0)' }, '50%': { transform: 'translate3d(1%,-2%,0)' }, '75%': { transform: 'translate3d(-1%,-1%,0)' } },
@@ -56,6 +57,7 @@ export default {
         pulseDot:  { '0%,100%': { opacity: '1', transform: 'scale(1)' }, '50%': { opacity: '.45', transform: 'scale(.82)' } },
       },
       animation: {
+        fadeIn:   'fadeIn 420ms cubic-bezier(.16,1,.3,1) forwards',
         marquee:  'marquee 34s linear infinite',
         spinSlow: 'spinSlow 18s linear infinite',
         grain:    'grain 8s steps(6) infinite',

@@ -5,12 +5,14 @@ import { CURTAIN } from '@/data/content';
 import { playSound } from '@/lib/sound';
 
 export function Curtain() {
+  const [mounted, setMounted] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isDismissed, setIsDismissed] = useState(false);
   const [hasGlitched, setHasGlitched] = useState(false);
   const touchStartRef = useRef(0);
 
   useEffect(() => {
+    setMounted(true);
     // Check session storage so curtain doesn't block returning users if already seen
     const seen = sessionStorage.getItem('neel_curtain_seen');
     if (seen === 'true') {
@@ -68,7 +70,7 @@ export function Curtain() {
     };
   }, [isDismissed]);
 
-  if (isDismissed && scrollProgress >= 1) return null;
+  if (!mounted || (isDismissed && scrollProgress >= 1)) return null;
 
   const topTranslate = -scrollProgress * 100;
   const bottomTranslate = scrollProgress * 100;

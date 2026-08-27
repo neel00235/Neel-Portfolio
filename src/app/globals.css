@@ -14,6 +14,12 @@
   initial-value: rgb(246 124 41 / 0.16);
 }
 
+@property --tone-ink {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #13100c;
+}
+
 :root {
   --ground: #13100c;
   --ground-2: #1b1611;
@@ -43,7 +49,7 @@ body {
   background-color: var(--ground);
   color: var(--cream);
   overflow-x: clip;
-  min-height: 100vh;
+  min-height: 100svh;
 }
 
 /* Fraunces WONK 1 declaration */

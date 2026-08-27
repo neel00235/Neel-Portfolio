@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useSound } from '@/store/useSound';
@@ -8,7 +8,16 @@ import { Magnetic } from '@/components/cursor/Magnetic';
 import { playSound } from '@/lib/sound';
 
 export function Header() {
-  const { soundEnabled, toggleSound } = useSound();
+  const { soundEnabled, toggleSound, setSoundEnabled } = useSound();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    const saved = localStorage.getItem('neel_sound_enabled');
+    if (saved === 'true') {
+      setSoundEnabled(true);
+    }
+  }, [setSoundEnabled]);
 
   const handleSoundClick = () => {
     playSound('click');
@@ -61,10 +70,10 @@ export function Header() {
           type="button"
           onClick={handleSoundClick}
           className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-line hover:border-terracotta text-cream font-mono text-[0.64rem] tracking-wider transition-colors"
-          aria-label={soundEnabled ? 'Disable audio' : 'Enable audio'}
+          aria-label={mounted && soundEnabled ? 'Disable audio' : 'Enable audio'}
           data-cursor="Sound"
         >
-          {soundEnabled ? (
+          {mounted && soundEnabled ? (
             <>
               <Volume2 className="w-3.5 h-3.5 text-terracotta" />
               <span className="hidden sm:inline text-terracotta">AUDIO ON</span>

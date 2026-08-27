@@ -151,9 +151,6 @@ export function ToneField() {
     };
   }, []);
 
-  // Update tone uniform dynamically
-  const toneRgb = hexToRgb(activeTone);
-
   return (
     <div
       ref={containerRef}
