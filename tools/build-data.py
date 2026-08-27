@@ -250,7 +250,7 @@ SKILLS = [
     ("Premiere Pro",
      "The assembly room. Multi-cam sync, proxy workflows, nested sequence structures and "
      "delivery-ready exports for every platform spec."),
-    ("CapCut — Advanced",
+    ("CapCut Advance",
      "Pushed well past template territory. Used deliberately for speed on short-form "
      "turnarounds where a same-day deliverable matters more than a round trip."),
     ("Live Stream Banner Animation",
@@ -465,6 +465,7 @@ STATS: {json.dumps(stats_data, indent=2, ensure_ascii=False)}
 }};
 """
     js_out = os.path.join(ROOT, "js", "data.js")
+    os.makedirs(os.path.dirname(js_out), exist_ok=True)
     with open(js_out, "w", encoding="utf-8") as f:
         f.write(js)
     print(f"wrote {js_out} — {len(sections)} sections, {len(unique_works)} unique videos")

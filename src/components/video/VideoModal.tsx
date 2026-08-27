@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { X, Maximize2 } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import { VideoFrame } from './VideoFrame';
 import { playSound } from '@/lib/sound';
+import { useLenis } from '@/lib/lenis';
 
 export interface ModalWork {
   id: string;
@@ -20,33 +22,65 @@ interface VideoModalProps {
 }
 
 export function VideoModal({ work, onClose }: VideoModalProps) {
+  const [mounted, setMounted] = useState(false);
+  const lenis = useLenis();
+  const prevFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     if (!work) return;
+
+    // Save previous active focus element
+    prevFocusRef.current = document.activeElement as HTMLElement;
+
+    // Lock scroll via Lenis per B-5 / R-29 (never overflow:hidden on body)
+    if (lenis) {
+      lenis.stop();
+    }
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         playSound('click');
-        onClose();
+        handleClose();
       }
     };
 
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [work, onClose]);
-
-  if (!work) return null;
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      if (lenis) {
+        lenis.start();
+      }
+    };
+  }, [work, lenis]);
 
   const handleClose = () => {
     playSound('click');
     onClose();
+    if (lenis) {
+      lenis.start();
+    }
+    // Return focus to invoking element
+    setTimeout(() => {
+      prevFocusRef.current?.focus();
+    }, 50);
   };
+
+  if (!work || !mounted) return null;
 
   const isVertical = work.aspect === '9:16';
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-[#13100c]/90 backdrop-blur-2xl animate-fadeIn"
+      className="fixed inset-0 flex items-center justify-center p-4 sm:p-8 bg-[#13100c]/95 md:bg-[#13100c]/90 md:backdrop-blur-2xl animate-fadeIn"
+      style={{ zIndex: 'var(--z-modal, 70)' }}
       onClick={handleClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={work.title}
     >
       {/* Modal Dialog */}
       <div
@@ -95,4 +129,6 @@ export function VideoModal({ work, onClose }: VideoModalProps) {
       </div>
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

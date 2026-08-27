@@ -13,20 +13,31 @@ interface MagneticProps {
 
 export function Magnetic({
   children,
-  strength = 0.16,
+  strength = 0.18,
   className = '',
   onClick,
   cursor,
 }: MagneticProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const boundsRef = useRef<{ centerX: number; centerY: number } | null>(null);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handlePointerEnter = () => {
     if (!ref.current) return;
     const { left, top, width, height } = ref.current.getBoundingClientRect();
-    const centerX = left + width / 2;
-    const centerY = top + height / 2;
-    const dx = (e.clientX - centerX) * strength;
-    const dy = (e.clientY - centerY) * strength;
+    boundsRef.current = {
+      centerX: left + width / 2,
+      centerY: top + height / 2,
+    };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!ref.current || !boundsRef.current) return;
+    const rawDx = (e.clientX - boundsRef.current.centerX) * strength;
+    const rawDy = (e.clientY - boundsRef.current.centerY) * strength;
+
+    // Cap magnetic displacement site-wide at 14 px (R-12)
+    const dx = Math.max(-14, Math.min(14, rawDx));
+    const dy = Math.max(-14, Math.min(14, rawDy));
 
     gsap.to(ref.current, {
       x: dx,
@@ -36,7 +47,8 @@ export function Magnetic({
     });
   };
 
-  const handleMouseLeave = () => {
+  const handlePointerLeave = () => {
+    boundsRef.current = null;
     if (!ref.current) return;
     gsap.to(ref.current, {
       x: 0,
@@ -50,8 +62,9 @@ export function Magnetic({
     <div
       ref={ref}
       className={`inline-block will-change-transform ${className}`}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onPointerEnter={handlePointerEnter}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
       onClick={onClick}
       data-cursor={cursor}
     >

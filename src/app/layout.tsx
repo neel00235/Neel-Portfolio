@@ -10,7 +10,7 @@ import {
 import { Header } from '@/components/layout/Header';
 import { MagneticCursor } from '@/components/cursor/MagneticCursor';
 import { SmoothScroller } from '@/components/scroller/SmoothScroller';
-import { ToneField } from '@/components/canvas/ToneField';
+import { ToneFieldLazy } from '@/components/canvas/ToneFieldLazy';
 import { ToneBridge } from '@/components/system/ToneBridge';
 import { META } from '@/data/content';
 
@@ -76,11 +76,21 @@ export default function RootLayout({
       >
         <ToneBridge />
         {/* Background Tone Shader, Animated Square Grid & Floating Gradient Textures */}
-        <ToneField />
+        <ToneFieldLazy />
         <div className="fixed inset-0 pointer-events-none grid-overlay z-0 opacity-70" aria-hidden="true" />
         <div className="fixed -top-40 -left-40 w-[600px] h-[600px] pointer-events-none gradient-orb-1 z-0 blur-3xl" aria-hidden="true" />
-        <div className="fixed top-1/2 -right-40 w-[700px] h-[700px] pointer-events-none gradient-orb-2 z-0 blur-3xl" aria-hidden="true" />
-        <div className="fixed inset-0 pointer-events-none film-grain z-0 opacity-25" aria-hidden="true" />
+        {/* Procedural Film Grain per R-33 */}
+        <svg
+          aria-hidden="true"
+          className="film-grain-layer fixed inset-0 w-full h-full pointer-events-none mix-blend-overlay animate-grain"
+          style={{ zIndex: 'var(--z-grain)' }}
+        >
+          <filter id="grain">
+            <feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="4" stitchTiles="stitch" />
+            <feColorMatrix type="saturate" values="0" />
+          </filter>
+          <rect width="100%" height="100%" filter="url(#grain)" />
+        </svg>
 
         {/* Global Context Cursor */}
         <MagneticCursor />

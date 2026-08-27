@@ -34,6 +34,17 @@
   --tone: #f67c29;
   --tone-blend: rgb(246 124 41 / 0.16);
   --tone-ink: #13100c;
+
+  /* Z-Index Contract */
+  --z-base: 0;
+  --z-media: 10;
+  --z-sticky: 20;
+  --z-header: 30;
+  --z-grain: 40;
+  --z-overlay: 60;
+  --z-modal: 70;
+  --z-curtain: 80;
+  --z-cursor: 100;
 }
 
 html {
@@ -43,6 +54,63 @@ html {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark;
+  accent-color: var(--terracotta);
+}
+
+/* Custom cursor active class toggled via JavaScript on first pointer move */
+html.cursor-active,
+html.cursor-active * {
+  cursor: none !important;
+}
+
+html.cursor-active [data-cursor="hidden"],
+html.cursor-active iframe {
+  cursor: auto !important;
+}
+
+/* R-40: Styled native controls and affordances */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  color: inherit;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="search"],
+textarea,
+select {
+  background-color: var(--ground-2);
+  border: 1px solid var(--line);
+  color: var(--cream);
+  accent-color: var(--terracotta);
+  border-radius: 4px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--cream);
+  -webkit-box-shadow: 0 0 0px 1000px var(--ground-2) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--terracotta);
 }
 
 body {
@@ -78,39 +146,64 @@ body {
   background: var(--terracotta);
 }
 
-/* Custom minimal scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--ground);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(214, 167, 108, 0.25);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--terracotta);
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
-/* Animated architectural forward-moving square grid */
-@keyframes gridMoveForward {
+/* Keyboard focus visibility contract */
+:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 3px;
+}
+
+/* Animated architectural forward-moving square grid per R-33 */
+@keyframes gridTravel {
   0% {
-    background-position: 0 0;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -32px, 0) scale(1.04);
   }
   100% {
-    background-position: 0 64px;
+    transform: translate3d(0, -64px, 0) scale(1.08);
   }
 }
 
 .grid-overlay {
   background-size: 64px 64px;
   background-image: 
-    linear-gradient(to right, rgba(246, 124, 41, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(246, 124, 41, 0.12) 1px, transparent 1px);
-  animation: gridMoveForward 16s linear infinite;
-  will-change: background-position;
+    linear-gradient(to right, rgba(246, 124, 41, 0.14) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(246, 124, 41, 0.14) 1px, transparent 1px);
+  animation: gridTravel 20s linear infinite;
+  will-change: transform;
+  opacity: 0.07;
+}
+
+/* Chrome grid toggle switches off grid lines but keeps grain per Phase 10 Gate */
+html.grid-off .grid-overlay,
+body.grid-off .grid-overlay,
+.grid-off .grid-overlay {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+/* Film grain responsive opacity: 0.055 on desktop / 0.035 on mobile per Phase 10 Gate */
+.film-grain-layer {
+  opacity: 0.035;
+}
+@media (min-width: 768px) {
+  .film-grain-layer {
+    opacity: 0.055;
+  }
 }
 
 /* Floating animated gradient textures shifting back and forth */
@@ -148,12 +241,6 @@ body {
   will-change: transform, opacity;
 }
 
-/* Ambient Film Grain */
-.film-grain {
-  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
-  background-size: 16px 16px;
-}
-
 /* Hide scrollbar utility */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
@@ -161,4 +248,16 @@ body {
 .scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Complete reduced-motion overrides */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

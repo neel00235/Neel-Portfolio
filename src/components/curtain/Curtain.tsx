@@ -1,192 +1,344 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { CURTAIN } from '@/data/content';
+import gsap from 'gsap';
 import { playSound } from '@/lib/sound';
 
 export function Curtain() {
-  const [progress, setProgress] = useState(0);
+  const [mounted, setMounted] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
-  const progressRef = useRef(0);
-  const rafRef = useRef<number | null>(null);
+  const [showRgbSplit, setShowRgbSplit] = useState(false);
+  const [showScanline, setShowScanline] = useState(false);
+  const [counter, setCounter] = useState(0);
+  const [preloaderDone, setPreloaderDone] = useState(false);
 
-  const openCurtain = () => {
-    if (isDismissed) return;
-    setIsDismissed(true);
-    playSound('reveal');
+  const topLeafRef = useRef<HTMLDivElement>(null);
+  const bottomLeafRef = useRef<HTMLDivElement>(null);
+  const curtainContentRef = useRef<HTMLDivElement>(null);
+  const isDismissingRef = useRef(false);
 
-    const startTime = performance.now();
-    const startProgress = progressRef.current;
-    const duration = 750; // 750ms silky smooth ease out
-
-    const step = (now: number) => {
-      const elapsed = (now - startTime) / duration;
-      if (elapsed < 1) {
-        // Smooth hardware cubic ease-out: 1 - (1 - t)^3
-        const ease = 1 - Math.pow(1 - elapsed, 3);
-        const nextP = startProgress + (1 - startProgress) * ease;
-        progressRef.current = nextP;
-        setProgress(nextP);
-        rafRef.current = requestAnimationFrame(step);
-      } else {
-        progressRef.current = 1;
-        setProgress(1);
-      }
-    };
-    rafRef.current = requestAnimationFrame(step);
-  };
-
+  // R-3: Real signals preloader (document.fonts.ready + hero poster + DOMContentLoaded)
   useEffect(() => {
-    // Respect reduced motion
+    // Check reduced motion & repeat visit first
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) {
+    const hasPlayed = sessionStorage.getItem('neel_curtain_played') === 'true';
+
+    if (prefersReducedMotion || hasPlayed) {
       setIsDismissed(true);
-      setProgress(1);
+      setMounted(true);
       return;
     }
 
-    const onWheel = (e: WheelEvent) => {
-      if (isDismissed) return;
-      if (e.deltaY > 0) {
-        const next = Math.min(1, progressRef.current + e.deltaY * 0.0025);
-        progressRef.current = next;
-        setProgress(next);
-        if (next >= 0.8) {
-          openCurtain();
-        }
+    setMounted(true);
+
+    let currentVal = 0;
+    const startTime = performance.now();
+
+    /*
+      Weighted, order-independent progress signals.
+
+      Each signal contributes its weight exactly once, whether it resolves or
+      rejects, and targetVal is recomputed from the set of settled signals. That
+      makes progress a pure function of WHICH signals have landed rather than the
+      order they land in -- the previous mix of Math.max() for fonts and += for
+      the others meant a fast-settling poster swallowed the font weight and the
+      counter stalled at 65% until the hard cap rescued it.
+    */
+    const WEIGHTS = { fonts: 0.45, poster: 0.45, dom: 0.1 } as const;
+    type Signal = keyof typeof WEIGHTS;
+    const settled = new Set<Signal>();
+    const BASELINE = 0.1; // so the counter starts moving immediately
+    let targetVal = BASELINE;
+
+    const settle = (name: Signal) => {
+      if (settled.has(name)) return;
+      settled.add(name);
+      let earned = 0;
+      settled.forEach((k) => {
+        earned += WEIGHTS[k];
+      });
+      // earned tops out at 1.0, so a full sweep lands exactly on 1.
+      targetVal = Math.min(1, BASELINE + earned * (1 - BASELINE));
+    };
+
+    // Signal 1: Fonts ready (45%)
+    const onFonts = () => settle('fonts');
+    if (document.fonts) {
+      document.fonts.ready.then(onFonts).catch(onFonts);
+    } else {
+      onFonts();
+    }
+
+    // Signal 2: Hero portrait decode (45%).
+    // Must be the same asset the hero actually renders (Hero.tsx portrait collage)
+    // or the preloader is gating on a file the browser never paints.
+    const poster = new Image();
+    poster.src = '/portrait/neel-collage.webp';
+    const onPoster = () => settle('poster');
+    if (poster.decode) {
+      poster.decode().then(onPoster).catch(onPoster);
+    } else {
+      poster.addEventListener('load', onPoster, { once: true });
+      poster.addEventListener('error', onPoster, { once: true });
+    }
+
+    // Signal 3: DOMContentLoaded (10%)
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      settle('dom');
+    } else {
+      window.addEventListener('DOMContentLoaded', () => settle('dom'), { once: true });
+    }
+
+    // Ticker with 1,800ms hard cap
+    let animId: number;
+    const tick = () => {
+      const elapsed = performance.now() - startTime;
+      if (elapsed >= 1800) {
+        targetVal = 1;
+      }
+
+      // Smoothly ease toward target value
+      currentVal += (targetVal - currentVal) * 0.12;
+      const displayVal = Math.min(100, Math.floor(currentVal * 100));
+      setCounter(displayVal);
+
+      if (displayVal >= 100 || (targetVal >= 1 && currentVal >= 0.98)) {
+        setCounter(100);
+        setPreloaderDone(true);
+      } else {
+        animId = requestAnimationFrame(tick);
       }
     };
 
-    let touchStartY = 0;
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
+    animId = requestAnimationFrame(tick);
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (isDismissed) return;
-      const currentY = e.touches[0].clientY;
-      const delta = touchStartY - currentY;
-      touchStartY = currentY;
-      if (delta > 0) {
-        const next = Math.min(1, progressRef.current + delta * 0.004);
-        progressRef.current = next;
-        setProgress(next);
-        if (next >= 0.8) {
-          openCurtain();
-        }
+    // bfcache restore handler
+    const onPageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        setIsDismissed(true);
+      }
+    };
+    window.addEventListener('pageshow', onPageShow);
+
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener('pageshow', onPageShow);
+    };
+  }, []);
+
+  // Dismiss function
+  const dismissCurtain = () => {
+    if (isDismissingRef.current || isDismissed) return;
+    isDismissingRef.current = true;
+    sessionStorage.setItem('neel_curtain_played', 'true');
+    playSound('reveal');
+
+    // R-5: 240ms RGB split glitch at the moment of break
+    setShowRgbSplit(true);
+    setTimeout(() => setShowRgbSplit(false), 240);
+
+    // R-4: Scanline sweep across the curtain
+    setShowScanline(true);
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        setIsDismissed(true);
+      },
+    });
+
+    if (topLeafRef.current) {
+      tl.to(
+        topLeafRef.current,
+        {
+          yPercent: -100,
+          duration: 0.85,
+          ease: 'power3.inOut',
+        },
+        0
+      );
+    }
+
+    if (bottomLeafRef.current) {
+      tl.to(
+        bottomLeafRef.current,
+        {
+          yPercent: 100,
+          duration: 0.85,
+          ease: 'power3.inOut',
+        },
+        0
+      );
+    }
+
+    if (curtainContentRef.current) {
+      tl.to(
+        curtainContentRef.current,
+        {
+          opacity: 0,
+          duration: 0.35,
+          ease: 'power2.out',
+        },
+        0
+      );
+    }
+  };
+
+  // Listeners for dismissal: scroll, click, Escape
+  useEffect(() => {
+    if (!mounted || isDismissed) return;
+
+    const onScroll = () => {
+      if (window.scrollY > 15) {
+        dismissCurtain();
       }
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
-      if (['ArrowDown', 'Space', 'Enter', 'Escape'].includes(e.key)) {
-        openCurtain();
+      if (['Escape', ' ', 'Enter', 'ArrowDown'].includes(e.key)) {
+        dismissCurtain();
       }
     };
 
-    window.addEventListener('wheel', onWheel, { passive: true });
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchmove', onTouchMove, { passive: true });
+    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      window.removeEventListener('wheel', onWheel);
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchmove', onTouchMove);
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('keydown', onKeyDown);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
-  }, [isDismissed]);
+  }, [mounted, isDismissed]);
 
-  if (isDismissed && progress >= 1) return null;
-
-  const topTranslate = -progress * 102;
-  const bottomTranslate = progress * 102;
-  const contentOpacity = Math.max(0, 1 - progress * 1.5);
-  const badgeScale = 1 - progress * 0.2;
+  // If not mounted or already dismissed, render nothing (no flash on repeat visit)
+  if (!mounted || isDismissed) return null;
 
   return (
     <div
-      onClick={openCurtain}
-      className={`fixed inset-0 z-50 overflow-hidden select-none cursor-pointer ${
-        isDismissed ? 'pointer-events-none' : 'pointer-events-auto'
-      }`}
-      aria-hidden={isDismissed}
+      onClick={dismissCurtain}
+      tabIndex={0}
+      role="dialog"
+      aria-label="Cinematic Curtain Preloader"
+      className="fixed inset-0 select-none cursor-pointer overflow-hidden"
+      style={{ zIndex: 'var(--z-curtain, 90)' }}
     >
-      {/* Top Rectangle (Translates Upwards on Scroll) */}
-      <div
-        className="absolute top-0 inset-x-0 h-1/2 bg-[#13100c] border-b border-terracotta/40 shadow-2xl flex flex-col justify-between pt-8 px-6 md:px-12 will-change-transform"
-        style={{
-          transform: `translate3d(0, ${topTranslate}%, 0)`,
-          transition: isDismissed ? 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
-        }}
-      >
-        <div
-          className="w-full max-w-shell mx-auto flex justify-between items-center text-muted font-mono text-label uppercase tracking-widest transition-opacity duration-200"
-          style={{ opacity: contentOpacity }}
-        >
-          <span className="text-terracotta font-semibold">PORTFOLIO 2026</span>
-          <span className="hidden sm:inline text-xs">AHMEDABAD // INDIA</span>
-        </div>
+      {/* R-4: One scanline sweep on curtain open */}
+      {showScanline && (
+        <div className="absolute inset-0 pointer-events-none z-50 animate-scanline bg-gradient-to-b from-transparent via-terracotta/20 to-transparent h-24 w-full" />
+      )}
 
-        {/* Center cutout upper frame */}
-        <div className="w-full flex justify-center pb-3">
-          <span
-            className="font-script text-cream text-[clamp(4.5rem,10vw,8.5rem)] leading-none select-none tracking-normal drop-shadow-md transition-opacity duration-200"
-            style={{ opacity: contentOpacity }}
-          >
-            Neel Patel
-          </span>
+      {/* Top Leaf (Height 50svh, with SVG Mask Knockout) */}
+      <div
+        ref={topLeafRef}
+        className={`absolute top-0 inset-x-0 h-[50svh] overflow-hidden will-change-transform ${
+          showRgbSplit ? 'animate-rgbSplit' : ''
+        }`}
+      >
+        <svg
+          className="w-full h-full block"
+          viewBox="0 0 1200 600"
+          preserveAspectRatio="xMidYMax slice"
+        >
+          <defs>
+            <mask id="matte-knockout-top">
+              {/* White makes the leaf visible */}
+              <rect width="1200" height="600" fill="white" />
+              {/* Black text cuts out letterforms through to background */}
+              <text
+                x="600"
+                y="600"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="black"
+                fontSize="112"
+                fontWeight="900"
+                letterSpacing="10"
+                style={{
+                  fontFamily: 'var(--font-fraunces), Fraunces, serif',
+                  fontVariationSettings: "'WONK' 1",
+                }}
+              >
+                NEEL PATEL
+              </text>
+            </mask>
+          </defs>
+          <rect
+            width="1200"
+            height="600"
+            fill="#13100c"
+            mask="url(#matte-knockout-top)"
+          />
+        </svg>
+
+        {/* Top Leaf Metadata UI */}
+        <div
+          ref={curtainContentRef}
+          className="absolute top-8 inset-x-0 px-6 md:px-12 flex justify-between items-center font-mono text-label text-muted tracking-widest uppercase pointer-events-none"
+        >
+          <span className="text-terracotta font-semibold">✦ PORTFOLIO 2026</span>
+          <span className="text-xs">AHMEDABAD // INDIA</span>
         </div>
       </div>
 
-      {/* Center Cutout Name Badge (Sits exactly in the middle) */}
+      {/* Bottom Leaf (Height 50svh, with SVG Mask Knockout) */}
       <div
-        className="absolute inset-0 pointer-events-none flex items-center justify-center z-30 transition-all duration-300"
-        style={{
-          opacity: contentOpacity,
-          transform: `scale(${badgeScale})`,
-        }}
+        ref={bottomLeafRef}
+        className={`absolute bottom-0 inset-x-0 h-[50svh] overflow-hidden will-change-transform ${
+          showRgbSplit ? 'animate-rgbSplit' : ''
+        }`}
       >
-        <div className="px-8 py-3 rounded-full bg-ground/90 backdrop-blur-md border border-terracotta/60 shadow-2xl flex items-center gap-3">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulseDot" />
-          <span className="font-display font-black text-cream tracking-widest text-lg sm:text-xl uppercase">
-            NEEL PATEL
-          </span>
-          <span className="font-mono text-terracotta text-xs tracking-wider uppercase">· 2026 REEL</span>
-        </div>
-      </div>
-
-      {/* Bottom Rectangle (Translates Downwards on Scroll) */}
-      <div
-        className="absolute bottom-0 inset-x-0 h-1/2 bg-[#13100c] border-t border-terracotta/40 shadow-2xl flex flex-col justify-between pb-8 px-6 md:px-12 will-change-transform"
-        style={{
-          transform: `translate3d(0, ${bottomTranslate}%, 0)`,
-          transition: isDismissed ? 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
-        }}
-      >
-        <div
-          className="w-full flex flex-col items-center justify-center pt-8 gap-2 transition-opacity duration-200"
-          style={{ opacity: contentOpacity }}
+        <svg
+          className="w-full h-full block"
+          viewBox="0 0 1200 600"
+          preserveAspectRatio="xMidYMin slice"
         >
-          <span className="font-mono text-terracotta text-label uppercase tracking-[0.28em] font-semibold">
-            VIDEO EDITOR & COLOURIST
-          </span>
-          <p className="font-sans text-muted text-xs tracking-wide">
-            Story-driven edits · Precision color · Social rhythm
-          </p>
-        </div>
+          <defs>
+            <mask id="matte-knockout-bottom">
+              {/* White makes the leaf visible */}
+              <rect width="1200" height="600" fill="white" />
+              {/* Black text cuts out letterforms through to background */}
+              <text
+                x="600"
+                y="0"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fill="black"
+                fontSize="112"
+                fontWeight="900"
+                letterSpacing="10"
+                style={{
+                  fontFamily: 'var(--font-fraunces), Fraunces, serif',
+                  fontVariationSettings: "'WONK' 1",
+                }}
+              >
+                NEEL PATEL
+              </text>
+            </mask>
+          </defs>
+          <rect
+            width="1200"
+            height="600"
+            fill="#13100c"
+            mask="url(#matte-knockout-bottom)"
+          />
+        </svg>
 
-        {/* Scroll Callout Button */}
-        <div
-          className="w-full flex flex-col items-center gap-2 transition-opacity duration-200"
-          style={{ opacity: contentOpacity }}
-        >
-          <div className="w-5 h-8 rounded-full border border-terracotta/70 flex justify-center p-1">
-            <div className="w-1 h-2 rounded-full bg-terracotta animate-pulseDot" />
+        {/* Bottom Leaf UI & Real-Signal Preloader Counter */}
+        <div className="absolute bottom-10 inset-x-0 px-6 flex flex-col items-center gap-4 text-center pointer-events-none">
+          {/* R-3: 000 -> 100 Tabular Mono Numerals */}
+          <div className="flex items-center gap-3 font-mono">
+            <span className="text-2xl md:text-3xl font-bold tracking-widest tabular-nums text-cream">
+              {String(counter).padStart(3, '0')}
+            </span>
+            <span className="text-terracotta text-sm">/ 100</span>
           </div>
-          <span className="font-mono text-[0.66rem] text-terracotta tracking-[0.22em] uppercase font-bold">
-            SCROLL OR CLICK TO ENTER
-          </span>
+
+          <div className="flex flex-col items-center gap-1">
+            <span className="font-mono text-terracotta text-label uppercase tracking-[0.3em] font-semibold">
+              {preloaderDone ? 'READY · SCROLL OR CLICK TO ENTER' : 'LOADING REEL ASSETS'}
+            </span>
+            <span className="font-mono text-[0.62rem] text-muted tracking-widest uppercase">
+              PRESS ESCAPE OR CLICK ANYWHERE
+            </span>
+          </div>
         </div>
       </div>
     </div>

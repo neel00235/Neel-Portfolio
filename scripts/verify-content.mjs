@@ -138,6 +138,33 @@ for (const phrase of verbatimChecks) {
 }
 assert(allVerbatim, 'All key verbatim prose blocks and endpoints present in content.ts');
 
+// 10. Verify Vimeo ID integrity (B-2)
+const idRegex = /\b(1\d{9})\b/g;
+const validIds = new Set(Object.keys(lock.titles));
+let phantomCount = 0;
+
+function scanForPhantomIds(dir) {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      scanForPhantomIds(fullPath);
+    } else if (/\.(tsx?|jsx?|json|css|mdx?)$/.test(entry.name)) {
+      const content = fs.readFileSync(fullPath, 'utf-8');
+      let match;
+      while ((match = idRegex.exec(content)) !== null) {
+        const id = match[1];
+        if (!validIds.has(id)) {
+          phantomCount++;
+          console.error(`Phantom Vimeo ID ${id} in ${path.relative(ROOT, fullPath)}`);
+        }
+      }
+    }
+  }
+}
+scanForPhantomIds(path.join(ROOT, 'src'));
+assert(phantomCount === 0, `Zero phantom Vimeo IDs in src/ (found ${phantomCount})`);
+
 console.log('=' .repeat(60));
 console.log(`GATE RESULT: ${passed} PASSED / ${failed} FAILED`);
 console.log('=' .repeat(60));

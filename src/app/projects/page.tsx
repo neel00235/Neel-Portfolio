@@ -30,10 +30,22 @@ export default function ProjectsPage() {
     { id: 'Study', label: 'Study' },
   ];
 
-  const filteredWorks =
+  const getDisciplinePriority = (d: string) => {
+    if (d === 'absolute-cinema') return 1;
+    if (d === 'motion-graphics') return 2;
+    return 3;
+  };
+
+  const filteredWorks = (
     activeKicker === 'all'
       ? UNIQUE_WORKS
-      : UNIQUE_WORKS.filter((w) => w.kicker === activeKicker);
+      : UNIQUE_WORKS.filter((w) => w.kicker === activeKicker)
+  ).slice().sort((a, b) => {
+    const pA = getDisciplinePriority(a.discipline);
+    const pB = getDisciplinePriority(b.discipline);
+    if (pA !== pB) return pA - pB;
+    return 0;
+  });
 
   const handleFilterClick = (id: string) => {
     playSound('click');
@@ -102,7 +114,11 @@ export default function ProjectsPage() {
         {/* 52-Film Responsive Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredWorks.map((work) => (
-            <div key={work.id} className="flex flex-col gap-3 group">
+            <div
+              key={work.id}
+              className="flex flex-col gap-3 group"
+              style={{ contentVisibility: 'auto', containIntrinsicSize: '380px' }}
+            >
               <VideoFrame
                 id={work.id}
                 title={work.title}

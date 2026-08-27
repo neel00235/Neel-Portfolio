@@ -24,11 +24,11 @@ export function VimeoFacade({
   const soundEnabled = useSound((s) => s.soundEnabled);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Send message to Vimeo iframe
+  // Send message to Vimeo iframe with exact targetOrigin per B-4
   const post = (method: string, value?: unknown) => {
     if (!iframeRef.current?.contentWindow) return;
     const msg = JSON.stringify({ method, value });
-    iframeRef.current.contentWindow.postMessage(msg, '*');
+    iframeRef.current.contentWindow.postMessage(msg, 'https://player.vimeo.com');
   };
 
   // Sync mute with global sound state
@@ -38,12 +38,17 @@ export function VimeoFacade({
     }
   }, [soundEnabled, isLoaded]);
 
-  // Handle messages from Vimeo player
+  // Handle messages from Vimeo player with origin validation per B-4
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
+      if (e.origin !== 'https://player.vimeo.com') return;
+
       try {
         const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
         if (!data) return;
+
+        // Filter by player_id so multiple players never cross-talk
+        if (data.player_id && String(data.player_id) !== String(videoId)) return;
 
         if (data.event === 'ready') {
           setIsLoaded(true);
@@ -55,7 +60,7 @@ export function VimeoFacade({
           if (autoPlay) {
             post('play');
           }
-        } else if (data.event === 'finish') {
+        } else if (data.event === 'finish' || data.event === 'ended') {
           onEnded?.();
         } else if (data.event === 'timeupdate') {
           if (data.data) {

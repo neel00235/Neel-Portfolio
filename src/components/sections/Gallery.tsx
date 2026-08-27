@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Maximize2 } from 'lucide-react';
 import { GALLERY_COPY } from '@/data/content';
@@ -9,10 +9,23 @@ import { VideoFrame } from '@/components/video/VideoFrame';
 import { VideoModal, ModalWork } from '@/components/video/VideoModal';
 import { Magnetic } from '@/components/cursor/Magnetic';
 import { playSound } from '@/lib/sound';
+import { Reveal } from '@/components/motion/Reveal';
+import { SplitText } from '@/components/motion/SplitText';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { Flip } from 'gsap/dist/Flip';
+
+gsap.registerPlugin(ScrollTrigger, Flip);
 
 export function Gallery() {
   const [activeKicker, setActiveKicker] = useState('all');
   const [modalWork, setModalWork] = useState<ModalWork | null>(null);
+
+  const galleryRef = useRef<HTMLElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const filterBarRef = useRef<HTMLDivElement>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const archiveBandRef = useRef<HTMLDivElement>(null);
 
   // Derive counts per kicker
   const kickerCounts = {
@@ -30,21 +43,128 @@ export function Gallery() {
       ? UNIQUE_WORKS
       : UNIQUE_WORKS.filter((w) => w.kicker === activeKicker);
 
-  // Prioritize Absolute Cinema and Motion Graphics upfront in the showcase
+  // Prioritize Absolute Cinema first, Motion Graphics second per R-20
+  const getDisciplinePriority = (d: string) => {
+    if (d === 'absolute-cinema') return 1;
+    if (d === 'motion-graphics') return 2;
+    return 3;
+  };
+
   const displayWorks = [...filteredWorks]
     .sort((a, b) => {
-      const isPriorityA = ['absolute-cinema', 'motion-graphics'].includes(a.discipline);
-      const isPriorityB = ['absolute-cinema', 'motion-graphics'].includes(b.discipline);
-      if (isPriorityA && !isPriorityB) return -1;
-      if (!isPriorityA && isPriorityB) return 1;
+      const pA = getDisciplinePriority(a.discipline);
+      const pB = getDisciplinePriority(b.discipline);
+      if (pA !== pB) return pA - pB;
       return 0;
     })
     .slice(0, 12);
 
   const handleFilterClick = (id: string) => {
     playSound('click');
-    setActiveKicker(id);
+    if (gridRef.current) {
+      const tiles = gridRef.current.querySelectorAll('.gallery-tile');
+      const state = Flip.getState(tiles);
+      setActiveKicker(id);
+      requestAnimationFrame(() => {
+        if (gridRef.current) {
+          Flip.from(state, {
+            duration: 0.6,
+            ease: 'power2.inOut',
+            stagger: 0.02,
+            absolute: true,
+          });
+        }
+      });
+    } else {
+      setActiveKicker(id);
+    }
   };
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    const ctx = gsap.context(() => {
+      // 1. Gallery header trigger
+      if (headerRef.current) {
+        gsap.fromTo(
+          headerRef.current,
+          { opacity: 0, y: 30 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: headerRef.current,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
+            },
+          }
+        );
+      }
+
+      // 2. Filter bar trigger
+      if (filterBarRef.current) {
+        gsap.fromTo(
+          filterBarRef.current,
+          { opacity: 0, y: 20 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: filterBarRef.current,
+              start: 'top 88%',
+              toggleActions: 'play none none none',
+            },
+          }
+        );
+      }
+
+      // 3. Grid velocity skew (R-17)
+      if (gridRef.current) {
+        gsap.to(gridRef.current, {
+          skewY: 0,
+          scaleY: 1,
+          scrollTrigger: {
+            trigger: gridRef.current,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: 0.2,
+            onUpdate: (self) => {
+              const vel = self.getVelocity();
+              const skew = Math.max(-2.5, Math.min(2.5, vel / 900));
+              const scale = 1 - Math.min(0.015, Math.abs(vel) / 30000);
+              gsap.set(gridRef.current, { skewY: skew, scaleY: scale });
+            },
+          },
+        });
+      }
+
+      // 4. Archive band trigger
+      if (archiveBandRef.current) {
+        gsap.fromTo(
+          archiveBandRef.current,
+          { opacity: 0, scale: 0.96 },
+          {
+            opacity: 1,
+            scale: 1,
+            duration: 0.8,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: archiveBandRef.current,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
+            },
+          }
+        );
+      }
+    }, galleryRef);
+
+    return () => ctx.revert();
+  }, []);
 
   const handleOpenModal = (work: ModalWork) => {
     playSound('click');
@@ -52,7 +172,7 @@ export function Gallery() {
   };
 
   return (
-    <section id="gallery" className="relative w-full py-24 px-6 md:px-12 border-b border-line overflow-hidden">
+    <section ref={galleryRef} id="gallery" className="relative w-full py-24 px-6 md:px-12 border-b border-line overflow-hidden">
       {/* Animated square grid background */}
       <div className="absolute inset-0 pointer-events-none grid-overlay opacity-30 z-0" aria-hidden="true" />
 
@@ -61,126 +181,150 @@ export function Gallery() {
 
       <div className="max-w-shell mx-auto relative z-10">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-8 border-b border-line-2">
+        <div ref={headerRef} className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-8 border-b border-line-2">
           <div>
-            <div className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-3">
-              <span>{GALLERY_COPY.labelNum}</span>
-              <span>/</span>
-              <span>{GALLERY_COPY.navLabel}</span>
-            </div>
+            <Reveal variant="fade">
+              <div className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-3">
+                <span>{GALLERY_COPY.labelNum}</span>
+                <span>/</span>
+                <span>{GALLERY_COPY.navLabel}</span>
+              </div>
+            </Reveal>
             <div className="flex flex-col">
-              <span className="font-script text-cream/90 text-4xl sm:text-5xl -mb-3 select-none">
-                {GALLERY_COPY.titleScript}
-              </span>
-              <h2 className="font-display font-black text-huge text-cream uppercase tracking-tight">
-                {GALLERY_COPY.titleDisplay}
+              <Reveal variant="fade" delay={0.06}>
+                <span className="font-script text-cream/90 text-4xl sm:text-5xl -mb-3 select-none">
+                  {GALLERY_COPY.titleScript}
+                </span>
+              </Reveal>
+              <h2 className="font-display font-black text-huge text-cream uppercase tracking-tight font-variation-wonk">
+                <SplitText text={GALLERY_COPY.titleDisplay} by="char" />
               </h2>
             </div>
           </div>
-          <p className="font-sans text-body text-cream/70 max-w-md">
-            {GALLERY_COPY.intro} Click any card to expand into the large player.
-          </p>
+          <Reveal variant="up" delay={0.1}>
+            <p className="font-sans text-body text-cream/70 max-w-md">
+              {GALLERY_COPY.intro} Click any card to expand into the large player.
+            </p>
+          </Reveal>
         </div>
 
         {/* Filter Chips Bar */}
-        <div className="flex flex-wrap gap-2 mb-10">
-          {GALLERY_COPY.kickerFilters.map((filter) => {
-            const count = kickerCounts[filter.id as keyof typeof kickerCounts];
-            const isActive = activeKicker === filter.id;
+        <Reveal variant="up" delay={0.15}>
+          <div ref={filterBarRef} className="flex flex-wrap gap-2 mb-10">
+            {GALLERY_COPY.kickerFilters.map((filter) => {
+              const count = kickerCounts[filter.id as keyof typeof kickerCounts];
+              const isActive = activeKicker === filter.id;
 
-            return (
-              <Magnetic key={filter.id} strength={0.16}>
-                <button
-                  type="button"
-                  onClick={() => handleFilterClick(filter.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-label uppercase tracking-wider transition-all duration-200 ${
-                    isActive
-                      ? 'bg-terracotta text-ground font-bold shadow-lg'
-                      : 'bg-ground-2 border border-line-2 text-muted hover:text-cream hover:border-line'
-                  }`}
-                >
-                  <span>{filter.label}</span>
-                  <span
-                    className={`px-1.5 py-0.2 rounded-full text-[0.6rem] ${
-                      isActive ? 'bg-ground/20 text-ground' : 'bg-ground-3 text-muted'
+              return (
+                <Magnetic key={filter.id} strength={0.16}>
+                  <button
+                    type="button"
+                    onClick={() => handleFilterClick(filter.id)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full font-mono text-label uppercase tracking-wider transition-all duration-200 ${
+                      isActive
+                        ? 'bg-terracotta text-ground font-bold shadow-lg'
+                        : 'bg-ground-2 border border-line-2 text-muted hover:text-cream hover:border-line'
                     }`}
                   >
-                    {count}
-                  </span>
-                </button>
-              </Magnetic>
-            );
-          })}
-        </div>
+                    <span>{filter.label}</span>
+                    <span
+                      className={`px-1.5 py-0.2 rounded-full text-[0.6rem] ${
+                        isActive ? 'bg-ground/20 text-ground' : 'bg-ground-3 text-muted'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                </Magnetic>
+              );
+            })}
+          </div>
+        </Reveal>
 
         {/* 12-Tile Showcase Grid (Tightened spacing & click to zoom) */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {displayWorks.map((work) => (
-            <div key={work.id} className="flex flex-col gap-3 group">
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+          {displayWorks.map((work, idx) => (
+            <Reveal key={work.id} variant="up" delay={0.04 * (idx % 6)}>
               <div
-                onClick={() => handleOpenModal(work)}
-                className="cursor-pointer relative rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-all duration-300 shadow-lg hover:-translate-y-1.5"
-                data-cursor="Zoom"
+                className="gallery-tile flex flex-col gap-3 group"
+                style={{ contentVisibility: 'auto', containIntrinsicSize: '380px' }}
               >
-                <VideoFrame
-                  id={work.id}
-                  title={work.title}
-                  slug={work.slug}
-                  aspect={work.aspect}
-                  duration={work.duration}
-                  tone={work.tone}
-                />
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleOpenModal(work);
-                  }}
-                  className="absolute top-2.5 right-2.5 z-20 p-1.5 rounded-full bg-ground/80 backdrop-blur-md border border-line text-cream opacity-0 group-hover:opacity-100 hover:text-terracotta transition-opacity duration-200"
-                  aria-label="Zoom video"
-                  title="Zoom in full player"
+                <div
+                  onClick={() => handleOpenModal(work)}
+                  className="cursor-pointer relative rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-all duration-300 shadow-lg hover:-translate-y-1.5"
+                  data-cursor="Zoom"
                 >
-                  <Maximize2 className="w-3.5 h-3.5" />
-                </button>
-              </div>
+                  <VideoFrame
+                    id={work.id}
+                    title={work.title}
+                    slug={work.slug}
+                    aspect={work.aspect}
+                    duration={work.duration}
+                    tone={work.tone}
+                  />
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenModal(work);
+                    }}
+                    className="absolute top-2.5 right-2.5 z-20 p-1.5 rounded-full bg-ground/95 md:bg-ground/80 md:backdrop-blur-md border border-line text-cream opacity-0 group-hover:opacity-100 hover:text-terracotta transition-opacity duration-200"
+                    aria-label="Zoom video"
+                    title="Zoom in full player"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
 
-              <div className="flex items-center justify-between font-mono text-label px-1">
-                <Link
-                  href={`/project/${work.slug}`}
-                  className="text-cream group-hover:text-terracotta transition-colors truncate pr-2 font-medium"
-                >
-                  {work.title}
-                </Link>
-                <span className="text-terracotta text-[0.68rem] font-semibold">{work.discipline}</span>
+                <div className="flex flex-col gap-1 px-1">
+                  <div className="flex items-center justify-between font-mono text-label">
+                    <Link
+                      href={`/project/${work.slug}`}
+                      className="text-cream group-hover:text-terracotta transition-colors truncate pr-2 font-display font-bold"
+                    >
+                      {work.title}
+                    </Link>
+                    <span className="text-terracotta text-xs font-semibold uppercase">
+                      {work.discipline.replace(/-/g, ' ')}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 font-mono text-[0.66rem] text-muted">
+                    <span className="px-1.5 py-0.5 rounded bg-line/60 border border-line-2 text-terracotta font-semibold">{work.aspect}</span>
+                    <span>·</span>
+                    <span>{work.duration}s</span>
+                  </div>
+                </div>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
 
         {/* View All 52 Edits Band */}
-        <div className="w-full p-8 md:p-12 rounded-2xl bg-ground-2 border border-line flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl">
-          <div className="flex flex-col text-center sm:text-left">
-            <span className="font-mono text-label text-terracotta tracking-widest uppercase mb-1">
-              FULL ARCHIVE
-            </span>
-            <h3 className="font-display font-black text-big text-cream uppercase">
-              EXPLORE ALL 52 WORKS
-            </h3>
-            <p className="font-sans text-sm text-cream/70 mt-1">
-              Browse the complete repository categorized across all 16 disciplines.
-            </p>
-          </div>
+        <Reveal variant="up" delay={0.15}>
+          <div ref={archiveBandRef} className="w-full p-8 md:p-12 rounded-2xl bg-ground-2 border border-line flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl">
+            <div className="flex flex-col text-center sm:text-left">
+              <span className="font-mono text-label text-terracotta tracking-widest uppercase mb-1">
+                FULL ARCHIVE
+              </span>
+              <h3 className="font-display font-black text-big text-cream uppercase">
+                <SplitText text="EXPLORE ALL 52 WORKS" by="char" />
+              </h3>
+              <p className="font-sans text-sm text-cream/70 mt-1">
+                Browse the complete repository categorized across all 16 disciplines.
+              </p>
+            </div>
 
-          <Magnetic strength={0.16} cursor="Open">
-            <Link
-              href="/projects"
-              className="flex items-center gap-3 px-8 py-4 rounded-full bg-terracotta hover:bg-[#ff8838] text-ground font-mono text-label font-bold tracking-widest uppercase shadow-xl transition-all duration-200"
-            >
-              <span>VIEW ALL 52 EDITS</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </Magnetic>
-        </div>
+            <Magnetic strength={0.16} cursor="Open">
+              <Link
+                href="/projects"
+                className="flex items-center gap-3 px-8 py-4 rounded-full bg-terracotta hover:bg-[#ff8838] text-ground font-mono text-label font-bold tracking-widest uppercase shadow-xl transition-all duration-200"
+              >
+                <span>VIEW ALL 52 EDITS</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </Magnetic>
+          </div>
+        </Reveal>
       </div>
     </section>
   );

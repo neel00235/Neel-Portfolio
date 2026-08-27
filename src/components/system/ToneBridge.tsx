@@ -5,6 +5,13 @@ import { useTone, hexToRgb, readableInk } from '@/store/useTone';
 
 export function ToneBridge() {
   const tone = useTone((s) => s.activeTone);
+  const setTone = useTone((s) => s.setTone);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as unknown as { __setTone: (t: string) => void }).__setTone = setTone;
+    }
+  }, [setTone]);
 
   useEffect(() => {
     const [r, g, b] = hexToRgb(tone);

@@ -63,7 +63,7 @@ export function PlayerChrome({
         </button>
 
         {duration > 0 && (
-          <span className="font-mono text-[0.68rem] tracking-wider text-muted select-none">
+          <span className="font-mono text-[0.68rem] tracking-wider text-muted select-none tabular-nums">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
         )}
@@ -72,8 +72,8 @@ export function PlayerChrome({
       {/* Progress track */}
       <div className="relative flex-1 h-1 mx-2 bg-cream/15 rounded-full overflow-hidden">
         <div
-          className="h-full bg-terracotta transition-all duration-150"
-          style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
+          className="h-full w-full bg-terracotta origin-left transition-transform duration-100 will-change-transform"
+          style={{ transform: `scaleX(${Math.min(1, Math.max(0, progress))})` }}
         />
       </div>
 
