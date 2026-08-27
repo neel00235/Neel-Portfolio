@@ -28,8 +28,16 @@ export function Gallery() {
       ? UNIQUE_WORKS
       : UNIQUE_WORKS.filter((w) => w.kicker === activeKicker);
 
-  // Take 12 for home showcase
-  const displayWorks = filteredWorks.slice(0, 12);
+  // Prioritize Absolute Cinema and Motion Graphics upfront in the showcase
+  const displayWorks = [...filteredWorks]
+    .sort((a, b) => {
+      const isPriorityA = ['absolute-cinema', 'motion-graphics'].includes(a.discipline);
+      const isPriorityB = ['absolute-cinema', 'motion-graphics'].includes(b.discipline);
+      if (isPriorityA && !isPriorityB) return -1;
+      if (!isPriorityA && isPriorityB) return 1;
+      return 0;
+    })
+    .slice(0, 12);
 
   const handleFilterClick = (id: string) => {
     playSound('click');

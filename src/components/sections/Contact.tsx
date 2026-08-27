@@ -72,7 +72,7 @@ export function Contact() {
               {/* Email */}
               <div
                 onClick={(e) => handleCopyEmail(e, 'neelpatel00235@gmail.com')}
-                className="flex items-center justify-between p-4 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta transition-colors cursor-pointer group"
+                className="flex items-center justify-between p-4 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer group"
                 data-cursor={copiedEmail ? 'Copied' : 'Copy'}
               >
                 <div className="flex items-center gap-3">
@@ -89,7 +89,7 @@ export function Contact() {
               {/* Phone */}
               <a
                 href="tel:+919106730866"
-                className="flex items-center justify-between p-4 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta transition-colors group"
+                className="flex items-center justify-between p-4 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
                 data-cursor="Call"
               >
                 <div className="flex items-center gap-3">
@@ -108,7 +108,7 @@ export function Contact() {
                 href="https://instagram.com/neelvt"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between p-4 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta transition-colors group"
+                className="flex items-center justify-between p-4 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group"
                 data-cursor="Open"
               >
                 <div className="flex items-center gap-3">

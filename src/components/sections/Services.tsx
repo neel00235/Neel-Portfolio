@@ -30,7 +30,7 @@ export function Services() {
           {SERVICES.map((service, index) => (
             <div
               key={service.name}
-              className="p-8 rounded-2xl bg-ground-2 border border-line-2 hover:border-line transition-all duration-300 flex flex-col justify-between gap-6 group hover:-translate-y-2 hover:shadow-2xl shadow-lg"
+              className="p-8 rounded-2xl bg-ground-2 border border-line-2 hover:border-terracotta/60 transition-all duration-300 flex flex-col justify-between gap-6 group hover:-translate-y-2 hover:shadow-[0_20px_40px_-10px_rgba(246,124,41,0.15)] shadow-lg"
             >
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between font-mono text-label text-muted">

@@ -25,13 +25,8 @@ export function Hero() {
         <div className="relative w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Column: Typography & Lead Copy */}
           <div className="lg:col-span-7 z-20 flex flex-col">
-            {/* Script Signature Accent */}
-            <span className="font-script text-cream/90 text-[clamp(3.5rem,8vw,7.5rem)] leading-none select-none -mb-4 drop-shadow-sm">
-              {HERO.signature}
-            </span>
-
-            {/* Display Mega Wordmark */}
-            <h1 className="font-display font-black text-mega text-cream uppercase tracking-tight leading-[0.88] mb-6">
+            {/* Display Mega Wordmark - Single Authoritative Title */}
+            <h1 className="font-display font-black text-mega text-cream uppercase tracking-tight leading-[0.88] mb-6 drop-shadow-md">
               NEEL PATEL
             </h1>
 

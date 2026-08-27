@@ -35,7 +35,7 @@ export function Toolkit() {
           {SKILLS.map((skill, index) => (
             <div
               key={skill.name}
-              className="p-6 rounded-xl bg-ground-2 border border-line-2 hover:border-line hover:-translate-y-1 transition-all duration-300 flex flex-col gap-3 group"
+              className="p-6 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta/60 hover:-translate-y-1.5 hover:shadow-[0_14px_32px_-6px_rgba(246,124,41,0.16)] transition-all duration-300 flex flex-col gap-3 group"
             >
               <div className="flex items-center justify-between font-mono text-label text-muted">
                 <span className="text-terracotta font-semibold">

@@ -11,13 +11,30 @@ import { playSound } from '@/lib/sound';
 export function SelectedWorks() {
   const [isDeckFanned, setIsDeckFanned] = useState(false);
 
-  // Conroy campaign works: 1 hero film + 9 vertical reels
+  // Conroy campaign works for the fanned deck: 1 hero film + 9 vertical reels
   const conroySection = SECTIONS.find((s) => s.slug === 'brand-films');
   const conroyHero = conroySection?.works[0] || UNIQUE_WORKS[0];
   const conroyReels = conroySection?.works.slice(1) || [];
 
-  // Rail works: select 6 distinct cuts
-  const railWorks = UNIQUE_WORKS.slice(1, 8);
+  // Put Absolute Cinema and Motion edits up front
+  const cinemaSection = SECTIONS.find((s) => s.slug === 'absolute-cinema');
+  const motionSection = SECTIONS.find((s) => s.slug === 'motion-graphics');
+  const eventGfxSection = SECTIONS.find((s) => s.slug === 'event-gfx');
+
+  // Lead film: Mumbai (Flagship Absolute Cinema edit)
+  const leadFilm = cinemaSection?.works[0] || conroyHero;
+
+  // Rail works: Absolute Cinema & Motion edits first
+  const cinemaWorks = cinemaSection?.works.slice(1) || [];
+  const motionWorks = motionSection?.works || [];
+  const gfxWorks = eventGfxSection?.works || [];
+  const otherWorks = UNIQUE_WORKS.filter(
+    (w) =>
+      w.id !== leadFilm.id &&
+      !['absolute-cinema', 'motion-graphics', 'event-gfx'].includes(w.discipline)
+  );
+
+  const railWorks = [...cinemaWorks, ...motionWorks, ...gfxWorks, ...otherWorks];
 
   const toggleDeck = () => {
     playSound('fan');
@@ -44,21 +61,21 @@ export function SelectedWorks() {
           </p>
         </div>
 
-        {/* 1. The Lead Film */}
+        {/* 1. The Lead Film (Absolute Cinema Flagship) */}
         <div className="mb-24">
           <div className="flex items-center justify-between font-mono text-label text-muted tracking-widest uppercase mb-4">
-            <span>{WORKS_COPY.leadLabel}</span>
-            <span>{conroyHero.title} · {conroyHero.aspect} · {conroyHero.duration}S</span>
+            <span className="text-terracotta font-semibold">✦ {WORKS_COPY.leadLabel} · ABSOLUTE CINEMA</span>
+            <span>{leadFilm.title} · {leadFilm.aspect} · {leadFilm.duration}S</span>
           </div>
 
-          <div className="w-full max-w-5xl mx-auto rounded-xl overflow-hidden border border-line shadow-2xl">
+          <div className="w-full max-w-5xl mx-auto rounded-xl overflow-hidden border border-line shadow-2xl transition-all duration-500 hover:border-terracotta/60 hover:shadow-terracotta/10">
             <VideoFrame
-              id={conroyHero.id}
-              title={conroyHero.title}
-              slug={conroyHero.slug}
-              aspect={conroyHero.aspect}
-              duration={conroyHero.duration}
-              tone={conroyHero.tone}
+              id={leadFilm.id}
+              title={leadFilm.title}
+              slug={leadFilm.slug}
+              aspect={leadFilm.aspect}
+              duration={leadFilm.duration}
+              tone={leadFilm.tone}
               priority={true}
               autoPlayLead={false}
               className="w-full"

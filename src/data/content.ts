@@ -42,7 +42,7 @@ export const HERO = {
     { label: "Based in", value: "Ahmedabad, India" },
     { label: "Availability", value: "Open for work", hasDot: true },
     { label: "Reply within", value: "24 hours" },
-    { label: "Primary stack", value: "Premiere Pro · After Effects · CapCut" },
+    { label: "Primary stack", value: "Premiere Pro · After Effects · CapCut Advance" },
     { label: "Delivers", value: "16:9 · 9:16 · 4:3 · 1:1" },
   ],
   stats: [

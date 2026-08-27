@@ -7,6 +7,7 @@ import { Services } from '@/components/sections/Services';
 import { Contact } from '@/components/sections/Contact';
 import { Footer } from '@/components/layout/Footer';
 import { Curtain } from '@/components/curtain/Curtain';
+import { Reveal } from '@/components/motion/Reveal';
 
 export default function HomePage() {
   return (
@@ -14,13 +15,23 @@ export default function HomePage() {
       {/* Cinematic Curtain Preloader */}
       <Curtain />
 
-      {/* Narrative Single Scroll Sections */}
+      {/* Narrative Single Scroll Sections with Smooth Reveal Motion */}
       <Hero />
-      <SelectedWorks />
-      <Gallery />
-      <Toolkit />
-      <Services />
-      <Contact />
+      <Reveal variant="up">
+        <SelectedWorks />
+      </Reveal>
+      <Reveal variant="up">
+        <Gallery />
+      </Reveal>
+      <Reveal variant="up">
+        <Toolkit />
+      </Reveal>
+      <Reveal variant="up">
+        <Services />
+      </Reveal>
+      <Reveal variant="up">
+        <Contact />
+      </Reveal>
       <Footer />
     </>
   );
