@@ -2,17 +2,19 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Maximize2 } from 'lucide-react';
 import { GALLERY_COPY } from '@/data/content';
 import { UNIQUE_WORKS } from '@/data/portfolio.generated';
 import { VideoFrame } from '@/components/video/VideoFrame';
+import { VideoModal, ModalWork } from '@/components/video/VideoModal';
 import { Magnetic } from '@/components/cursor/Magnetic';
 import { playSound } from '@/lib/sound';
 
 export function Gallery() {
-  const [activeKicker, setActiveKicker] = useState<string>('all');
+  const [activeKicker, setActiveKicker] = useState('all');
+  const [modalWork, setModalWork] = useState<ModalWork | null>(null);
 
-  // Compute exact first-occurrence kicker counts per XVII.7
+  // Derive counts per kicker
   const kickerCounts = {
     all: UNIQUE_WORKS.length,
     'Client work': UNIQUE_WORKS.filter((w) => w.kicker === 'Client work').length,
@@ -44,9 +46,20 @@ export function Gallery() {
     setActiveKicker(id);
   };
 
+  const handleOpenModal = (work: ModalWork) => {
+    playSound('click');
+    setModalWork(work);
+  };
+
   return (
     <section id="gallery" className="relative w-full py-24 px-6 md:px-12 border-b border-line overflow-hidden">
-      <div className="max-w-shell mx-auto">
+      {/* Animated square grid background */}
+      <div className="absolute inset-0 pointer-events-none grid-overlay opacity-30 z-0" aria-hidden="true" />
+
+      {/* Lightbox Zoom Modal */}
+      <VideoModal work={modalWork} onClose={() => setModalWork(null)} />
+
+      <div className="max-w-shell mx-auto relative z-10">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-8 border-b border-line-2">
           <div>
@@ -65,18 +78,18 @@ export function Gallery() {
             </div>
           </div>
           <p className="font-sans text-body text-cream/70 max-w-md">
-            {GALLERY_COPY.intro}
+            {GALLERY_COPY.intro} Click any card to expand into the large player.
           </p>
         </div>
 
         {/* Filter Chips Bar */}
-        <div className="flex flex-wrap gap-2 mb-12">
+        <div className="flex flex-wrap gap-2 mb-10">
           {GALLERY_COPY.kickerFilters.map((filter) => {
             const count = kickerCounts[filter.id as keyof typeof kickerCounts];
             const isActive = activeKicker === filter.id;
 
             return (
-              <Magnetic key={filter.id} strength={0.2}>
+              <Magnetic key={filter.id} strength={0.16}>
                 <button
                   type="button"
                   onClick={() => handleFilterClick(filter.id)}
@@ -100,26 +113,45 @@ export function Gallery() {
           })}
         </div>
 
-        {/* 12-Tile Showcase Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+        {/* 12-Tile Showcase Grid (Tightened spacing & click to zoom) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
           {displayWorks.map((work) => (
             <div key={work.id} className="flex flex-col gap-3 group">
-              <VideoFrame
-                id={work.id}
-                title={work.title}
-                slug={work.slug}
-                aspect={work.aspect}
-                duration={work.duration}
-                tone={work.tone}
-              />
-              <div className="flex items-center justify-between font-mono text-label">
+              <div
+                onClick={() => handleOpenModal(work)}
+                className="cursor-pointer relative rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-all duration-300 shadow-lg hover:-translate-y-1.5"
+                data-cursor="Zoom"
+              >
+                <VideoFrame
+                  id={work.id}
+                  title={work.title}
+                  slug={work.slug}
+                  aspect={work.aspect}
+                  duration={work.duration}
+                  tone={work.tone}
+                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenModal(work);
+                  }}
+                  className="absolute top-2.5 right-2.5 z-20 p-1.5 rounded-full bg-ground/80 backdrop-blur-md border border-line text-cream opacity-0 group-hover:opacity-100 hover:text-terracotta transition-opacity duration-200"
+                  aria-label="Zoom video"
+                  title="Zoom in full player"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between font-mono text-label px-1">
                 <Link
                   href={`/project/${work.slug}`}
                   className="text-cream group-hover:text-terracotta transition-colors truncate pr-2 font-medium"
                 >
                   {work.title}
                 </Link>
-                <span className="text-muted text-[0.64rem]">{work.discipline}</span>
+                <span className="text-terracotta text-[0.68rem] font-semibold">{work.discipline}</span>
               </div>
             </div>
           ))}
@@ -139,7 +171,7 @@ export function Gallery() {
             </p>
           </div>
 
-          <Magnetic strength={0.3} cursor="Open">
+          <Magnetic strength={0.16} cursor="Open">
             <Link
               href="/projects"
               className="flex items-center gap-3 px-8 py-4 rounded-full bg-terracotta hover:bg-[#ff8838] text-ground font-mono text-label font-bold tracking-widest uppercase shadow-xl transition-all duration-200"

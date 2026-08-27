@@ -13,7 +13,7 @@ interface MagneticProps {
 
 export function Magnetic({
   children,
-  strength = 0.35,
+  strength = 0.16,
   className = '',
   onClick,
   cursor,
@@ -31,7 +31,7 @@ export function Magnetic({
     gsap.to(ref.current, {
       x: dx,
       y: dy,
-      duration: 0.35,
+      duration: 0.3,
       ease: 'power2.out',
     });
   };
@@ -41,8 +41,8 @@ export function Magnetic({
     gsap.to(ref.current, {
       x: 0,
       y: 0,
-      duration: 0.65,
-      ease: 'elastic.out(1, 0.4)',
+      duration: 0.4,
+      ease: 'power2.out',
     });
   };
 

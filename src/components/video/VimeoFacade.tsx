@@ -43,7 +43,7 @@ export function VimeoFacade({
     const handleMessage = (e: MessageEvent) => {
       try {
         const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-        if (!data || data.player_id !== videoId && !data.event) return;
+        if (!data) return;
 
         if (data.event === 'ready') {
           setIsLoaded(true);
@@ -63,7 +63,7 @@ export function VimeoFacade({
           }
         }
       } catch {
-        // non-JSON message
+        // Non-JSON message from external scripts
       }
     };
 
@@ -73,7 +73,9 @@ export function VimeoFacade({
     };
   }, [videoId, autoPlay, soundEnabled, onEnded, onTimeUpdate]);
 
-  const embedUrl = `https://player.vimeo.com/video/${videoId}?autoplay=${autoPlay ? 1 : 0}&muted=${soundEnabled ? 0 : 1}&loop=1&background=0&controls=0&dnt=1&quality=1080p&app_id=122963`;
+  const embedUrl = `https://player.vimeo.com/video/${videoId}?api=1&player_id=${videoId}&autoplay=${
+    autoPlay ? 1 : 0
+  }&muted=${soundEnabled ? 0 : 1}&loop=1&background=0&controls=0&dnt=1&quality=1080p&app_id=122963`;
 
   return (
     <div className={`relative w-full h-full overflow-hidden bg-ground-2 ${className}`}>

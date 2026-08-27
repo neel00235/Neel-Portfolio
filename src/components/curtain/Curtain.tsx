@@ -7,61 +7,81 @@ import { playSound } from '@/lib/sound';
 export function Curtain() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isDismissed, setIsDismissed] = useState(false);
-  const [hasGlitched, setHasGlitched] = useState(false);
-  const touchStartRef = useRef(0);
+  const progressRef = useRef(0);
+  const animFrameRef = useRef<number | null>(null);
 
   const dismissCurtain = () => {
     if (isDismissed) return;
     setIsDismissed(true);
     playSound('reveal');
-    setHasGlitched(true);
-    setTimeout(() => setHasGlitched(false), 240);
-    // Smoothly animate scroll progress to 1
-    const startTime = performance.now();
-    const animateOpen = (now: number) => {
-      const elapsed = (now - startTime) / 600; // 600ms ease out
+    const start = performance.now();
+    const initial = progressRef.current;
+    const animate = (time: number) => {
+      const elapsed = (time - start) / 600;
       if (elapsed < 1) {
-        setScrollProgress((prev) => Math.max(prev, Math.min(1, elapsed * (2 - elapsed))));
-        requestAnimationFrame(animateOpen);
+        const ease = 1 - Math.pow(1 - elapsed, 3);
+        const p = initial + (1 - initial) * ease;
+        progressRef.current = p;
+        setScrollProgress(p);
+        animFrameRef.current = requestAnimationFrame(animate);
       } else {
+        progressRef.current = 1;
         setScrollProgress(1);
       }
     };
-    requestAnimationFrame(animateOpen);
+    animFrameRef.current = requestAnimationFrame(animate);
   };
 
   useEffect(() => {
-    const onWheel = (e: WheelEvent) => {
+    // Respect reduced motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      setIsDismissed(true);
+      setScrollProgress(1);
+      return;
+    }
+
+    const onScroll = () => {
       if (isDismissed) return;
-      if (e.deltaY > 0) {
-        const delta = e.deltaY * 0.003;
-        setScrollProgress((prev) => {
-          const next = Math.min(1, Math.max(0, prev + delta));
-          if (next >= 0.85 && !isDismissed) {
-            dismissCurtain();
-          }
-          return next;
-        });
+      const scrollY = window.scrollY || window.pageYOffset;
+      const threshold = window.innerHeight * 0.75;
+      const p = Math.min(1, Math.max(0, scrollY / threshold));
+      progressRef.current = p;
+      setScrollProgress(p);
+      if (p >= 0.95 && !isDismissed) {
+        setIsDismissed(true);
       }
     };
 
+    const onWheel = (e: WheelEvent) => {
+      if (isDismissed) return;
+      if (e.deltaY > 0) {
+        const p = Math.min(1, progressRef.current + e.deltaY * 0.002);
+        progressRef.current = p;
+        setScrollProgress(p);
+        if (p >= 0.95 && !isDismissed) {
+          dismissCurtain();
+        }
+      }
+    };
+
+    let touchStartY = 0;
     const onTouchStart = (e: TouchEvent) => {
-      touchStartRef.current = e.touches[0].clientY;
+      touchStartY = e.touches[0].clientY;
     };
 
     const onTouchMove = (e: TouchEvent) => {
       if (isDismissed) return;
       const currentY = e.touches[0].clientY;
-      const diff = (touchStartRef.current - currentY) * 0.005;
-      touchStartRef.current = currentY;
+      const diff = touchStartY - currentY;
+      touchStartY = currentY;
       if (diff > 0) {
-        setScrollProgress((prev) => {
-          const next = Math.min(1, Math.max(0, prev + diff));
-          if (next >= 0.85 && !isDismissed) {
-            dismissCurtain();
-          }
-          return next;
-        });
+        const p = Math.min(1, progressRef.current + diff * 0.0035);
+        progressRef.current = p;
+        setScrollProgress(p);
+        if (p >= 0.95 && !isDismissed) {
+          dismissCurtain();
+        }
       }
     };
 
@@ -71,81 +91,103 @@ export function Curtain() {
       }
     };
 
+    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('wheel', onWheel, { passive: true });
     window.addEventListener('touchstart', onTouchStart, { passive: true });
     window.addEventListener('touchmove', onTouchMove, { passive: true });
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
+      window.removeEventListener('scroll', onScroll);
       window.removeEventListener('wheel', onWheel);
       window.removeEventListener('touchstart', onTouchStart);
       window.removeEventListener('touchmove', onTouchMove);
       window.removeEventListener('keydown', onKeyDown);
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
   }, [isDismissed]);
 
   if (isDismissed && scrollProgress >= 1) return null;
 
-  const topTranslate = -scrollProgress * 100;
-  const bottomTranslate = scrollProgress * 100;
-  const contentOpacity = Math.max(0, 1 - scrollProgress * 1.8);
+  const topTranslate = (-scrollProgress * 105).toFixed(2);
+  const bottomTranslate = (scrollProgress * 105).toFixed(2);
+  const contentOpacity = Math.max(0, 1 - scrollProgress * 1.6);
 
   return (
     <div
       onClick={dismissCurtain}
-      className={`fixed inset-0 z-50 transition-colors duration-200 cursor-pointer select-none ${
+      className={`fixed inset-0 z-50 overflow-hidden select-none transition-colors duration-200 ${
         isDismissed ? 'pointer-events-none' : 'pointer-events-auto'
-      } ${hasGlitched ? 'animate-rgbSplit' : ''}`}
+      }`}
       aria-hidden={isDismissed}
     >
       {/* Top Bisection Leaf */}
       <div
-        className="absolute top-0 inset-x-0 h-1/2 bg-[#13100c]/98 backdrop-blur-md border-b border-line shadow-2xl transition-transform ease-out will-change-transform flex flex-col justify-end items-center pb-8 overflow-hidden"
-        style={{ transform: `translate3d(0, ${topTranslate}%, 0)` }}
+        className="absolute top-0 inset-x-0 h-[calc(50%+1px)] bg-[#13100c]/98 backdrop-blur-md border-b border-terracotta/40 shadow-2xl flex flex-col justify-between pt-8 overflow-hidden will-change-transform"
+        style={{
+          transform: `translate3d(0, ${topTranslate}%, 0)`,
+          transition: isDismissed ? 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
+        }}
       >
-        <div className="absolute top-6 inset-x-8 flex justify-between text-muted font-mono text-label uppercase tracking-widest pointer-events-none">
+        <div
+          className="w-full max-w-shell mx-auto px-6 md:px-12 flex justify-between items-center text-muted font-mono text-label uppercase tracking-widest pointer-events-none transition-opacity duration-200"
+          style={{ opacity: contentOpacity }}
+        >
           <span>{CURTAIN.topLabelLeft}</span>
+          <span className="font-script text-cream text-3xl sm:text-4xl select-none tracking-normal">
+            {CURTAIN.script}
+          </span>
           <span>{CURTAIN.topLabelRight}</span>
         </div>
 
-        <div
-          className="text-center transition-opacity duration-200"
-          style={{ opacity: contentOpacity }}
-        >
-          <span className="font-script text-cream text-[clamp(4.5rem,11vw,9.5rem)] leading-none select-none tracking-normal block drop-shadow-lg">
-            {CURTAIN.script}
+        {/* Bisected Giant Wordmark (Top Half) */}
+        <div className="relative w-full overflow-hidden h-[clamp(2.5rem,8.5vw,6.5rem)] flex justify-center items-end text-center select-none">
+          <span className="font-display font-black text-[clamp(4.5rem,15vw,13.5rem)] text-cream uppercase leading-[0.82] tracking-tight translate-y-[50%] select-none drop-shadow-md">
+            NEEL PATEL
           </span>
         </div>
       </div>
 
       {/* Bottom Bisection Leaf */}
       <div
-        className="absolute bottom-0 inset-x-0 h-1/2 bg-[#13100c]/98 backdrop-blur-md border-t border-line shadow-2xl transition-transform ease-out will-change-transform flex flex-col justify-start items-center pt-8 overflow-hidden"
-        style={{ transform: `translate3d(0, ${bottomTranslate}%, 0)` }}
+        className="absolute bottom-0 inset-x-0 h-[calc(50%+1px)] bg-[#13100c]/98 backdrop-blur-md border-t border-terracotta/40 shadow-2xl flex flex-col justify-between pb-8 overflow-hidden will-change-transform"
+        style={{
+          transform: `translate3d(0, ${bottomTranslate}%, 0)`,
+          transition: isDismissed ? 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' : 'none',
+        }}
       >
+        {/* Bisected Giant Wordmark (Bottom Half) */}
+        <div className="relative w-full overflow-hidden h-[clamp(2.5rem,8.5vw,6.5rem)] flex justify-center items-start text-center select-none">
+          <span className="font-display font-black text-[clamp(4.5rem,15vw,13.5rem)] text-cream uppercase leading-[0.82] tracking-tight -translate-y-[50%] select-none drop-shadow-md">
+            NEEL PATEL
+          </span>
+        </div>
+
         <div
-          className="flex flex-col items-center text-center gap-4 transition-opacity duration-200"
+          className="w-full max-w-shell mx-auto px-6 md:px-12 flex flex-col sm:flex-row justify-between items-center gap-4 text-center sm:text-left transition-opacity duration-200"
           style={{ opacity: contentOpacity }}
         >
-          <p className="font-mono text-terracotta text-label uppercase tracking-[0.28em] font-semibold">
-            {CURTAIN.role}
-          </p>
-          <p className="font-sans text-muted text-sm tracking-wide">
-            {CURTAIN.subTagline}
-          </p>
+          <div className="flex flex-col gap-1">
+            <span className="font-mono text-terracotta text-label uppercase tracking-[0.24em] font-semibold">
+              {CURTAIN.role}
+            </span>
+            <span className="font-sans text-muted text-xs tracking-wide">
+              {CURTAIN.subTagline}
+            </span>
+          </div>
 
-          <div className="mt-6 flex flex-col items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="w-5 h-8 rounded-full border border-terracotta/60 flex justify-center p-1">
               <div className="w-1 h-2 rounded-full bg-terracotta animate-pulseDot" />
             </div>
-            <span className="font-mono text-[0.68rem] text-terracotta tracking-[0.2em] uppercase font-bold">
-              SCROLL OR CLICK TO ENTER
+            <span className="font-mono text-[0.66rem] text-terracotta tracking-[0.2em] uppercase font-bold">
+              {CURTAIN.scrollBadgeStatic}
             </span>
           </div>
-        </div>
 
-        <div className="absolute bottom-6 font-mono text-label text-muted/60 tracking-widest uppercase">
-          {CURTAIN.edition}
+          <span className="hidden sm:inline font-mono text-label text-muted/60 tracking-widest uppercase">
+            {CURTAIN.edition}
+          </span>
         </div>
       </div>
     </div>

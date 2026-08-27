@@ -72,6 +72,27 @@ export function VideoFrame({
     }
   }, [isPlayingFull, tone, setTone]);
 
+  // Smooth live timeline progression during active playback
+  useEffect(() => {
+    if (!isPlayingFull) {
+      setCurrentTime(0);
+      setProgress(0);
+      return;
+    }
+    const interval = setInterval(() => {
+      setCurrentTime((prev) => {
+        const next = prev + 0.25;
+        if (duration > 0) {
+          setProgress(Math.min(1, next / duration));
+          if (next >= duration) return 0;
+        }
+        return next;
+      });
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [isPlayingFull, duration]);
+
   const handlePlayClick = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     playSound('click');

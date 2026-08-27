@@ -7,14 +7,16 @@ export function MagneticCursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
   const [cursorState, setCursorState] = useState<string>('default');
-  const [isVisible, setIsVisible] = useState(false);
   const [label, setLabel] = useState<string>('');
+  const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
     // Only enable on desktop pointer devices
     const isPointerFine = window.matchMedia('(pointer: fine)').matches;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (!isPointerFine || prefersReducedMotion) return;
+
+    setEnabled(true);
 
     const dot = dotRef.current;
     const ring = ringRef.current;
@@ -26,15 +28,22 @@ export function MagneticCursor() {
     const setRingX = gsap.quickSetter(ring, 'x', 'px');
     const setRingY = gsap.quickSetter(ring, 'y', 'px');
 
-    let mouseX = window.innerWidth / 2;
-    let mouseY = window.innerHeight / 2;
-    let ringX = mouseX;
-    let ringY = mouseY;
+    let mouseX = -100;
+    let mouseY = -100;
+    let ringX = -100;
+    let ringY = -100;
+    let hasMoved = false;
 
     const onMouseMove = (e: MouseEvent) => {
-      if (!isVisible) setIsVisible(true);
       mouseX = e.clientX;
       mouseY = e.clientY;
+      if (!hasMoved) {
+        hasMoved = true;
+        ringX = mouseX;
+        ringY = mouseY;
+        dot.style.opacity = '1';
+        ring.style.opacity = '1';
+      }
       setDotX(mouseX);
       setDotY(mouseY);
 
@@ -45,7 +54,7 @@ export function MagneticCursor() {
         setCursorState(val.toLowerCase());
         setLabel(val);
       } else {
-        const interactive = (e.target as HTMLElement)?.closest('a, button, input, textarea');
+        const interactive = (e.target as HTMLElement)?.closest('a, button, input, textarea, [role="button"]');
         if (interactive) {
           setCursorState('hover');
           setLabel('');
@@ -56,8 +65,15 @@ export function MagneticCursor() {
       }
     };
 
-    const onMouseLeave = () => setIsVisible(false);
-    const onMouseEnter = () => setIsVisible(true);
+    const onMouseLeave = () => {
+      if (dot) dot.style.opacity = '0';
+      if (ring) ring.style.opacity = '0';
+    };
+
+    const onMouseEnter = () => {
+      if (dot) dot.style.opacity = '1';
+      if (ring) ring.style.opacity = '1';
+    };
 
     window.addEventListener('mousemove', onMouseMove, { passive: true });
     document.addEventListener('mouseleave', onMouseLeave);
@@ -66,7 +82,7 @@ export function MagneticCursor() {
     // Smooth interpolation for outer ring
     let reqId: number;
     const updateRing = () => {
-      const dt = 0.22;
+      const dt = 0.18;
       ringX += (mouseX - ringX) * dt;
       ringY += (mouseY - ringY) * dt;
       setRingX(ringX);
@@ -81,9 +97,9 @@ export function MagneticCursor() {
       document.removeEventListener('mouseenter', onMouseEnter);
       cancelAnimationFrame(reqId);
     };
-  }, [isVisible]);
+  }, []);
 
-  if (!isVisible) return null;
+  if (!enabled) return null;
 
   const isExpanded = cursorState !== 'default' && cursorState !== 'hover';
 
@@ -92,7 +108,7 @@ export function MagneticCursor() {
       {/* Inner precise dot */}
       <div
         ref={dotRef}
-        className={`fixed top-0 left-0 -ml-1 -mt-1 w-2 h-2 rounded-full bg-terracotta transition-opacity duration-200 ${
+        className={`fixed top-0 left-0 -ml-1 -mt-1 w-2 h-2 rounded-full bg-terracotta opacity-0 transition-opacity duration-200 ${
           isExpanded ? 'opacity-0' : 'opacity-100'
         }`}
       />
@@ -100,11 +116,11 @@ export function MagneticCursor() {
       {/* Outer context ring & badge */}
       <div
         ref={ringRef}
-        className={`fixed top-0 left-0 flex items-center justify-center -ml-5 -mt-5 rounded-full border border-terracotta/40 bg-terracotta/10 backdrop-blur-[1px] transition-all duration-300 ${
+        className={`fixed top-0 left-0 flex items-center justify-center -ml-5 -mt-5 rounded-full border border-terracotta/50 bg-terracotta/10 backdrop-blur-[1px] opacity-0 transition-all duration-300 ${
           isExpanded
-            ? 'w-16 h-16 -ml-8 -mt-8 bg-terracotta text-ground font-mono text-[0.62rem] font-bold tracking-widest uppercase border-transparent shadow-xl'
+            ? 'w-16 h-16 -ml-8 -mt-8 bg-terracotta text-ground font-mono text-[0.62rem] font-bold tracking-widest uppercase border-transparent shadow-xl scale-100'
             : cursorState === 'hover'
-            ? 'w-12 h-12 -ml-6 -mt-6 border-terracotta/80 scale-110'
+            ? 'w-12 h-12 -ml-6 -mt-6 border-terracotta/90 scale-110 bg-terracotta/20'
             : 'w-10 h-10 -ml-5 -mt-5'
         }`}
       >
