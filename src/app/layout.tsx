@@ -75,10 +75,12 @@ export default function RootLayout({
         className="relative bg-ground text-cream selection:bg-terracotta selection:text-ground font-sans antialiased overflow-x-clip"
       >
         <ToneBridge />
-        {/* Background Tone Shader & Texture stack */}
+        {/* Background Tone Shader, Animated Square Grid & Floating Gradient Textures */}
         <ToneField />
-        <div className="fixed inset-0 pointer-events-none grid-overlay z-0 opacity-40" aria-hidden="true" />
-        <div className="fixed inset-0 pointer-events-none film-grain z-0 opacity-30" aria-hidden="true" />
+        <div className="fixed inset-0 pointer-events-none grid-overlay z-0 opacity-70" aria-hidden="true" />
+        <div className="fixed -top-40 -left-40 w-[600px] h-[600px] pointer-events-none gradient-orb-1 z-0 blur-3xl" aria-hidden="true" />
+        <div className="fixed top-1/2 -right-40 w-[700px] h-[700px] pointer-events-none gradient-orb-2 z-0 blur-3xl" aria-hidden="true" />
+        <div className="fixed inset-0 pointer-events-none film-grain z-0 opacity-25" aria-hidden="true" />
 
         {/* Global Context Cursor */}
         <MagneticCursor />

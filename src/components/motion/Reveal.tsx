@@ -30,9 +30,9 @@ export function Reveal({
 
     let fromVars: gsap.TweenVars = { opacity: 0 };
     if (variant === 'up') {
-      fromVars = { opacity: 0, y: 32 };
+      fromVars = { opacity: 0, y: 38 };
     } else if (variant === 'scale') {
-      fromVars = { opacity: 0, scale: 0.96 };
+      fromVars = { opacity: 0, scale: 0.95 };
     }
 
     const ctx = gsap.context(() => {
@@ -43,9 +43,9 @@ export function Reveal({
           opacity: 1,
           y: 0,
           scale: 1,
-          duration: 0.65,
+          duration: 0.85,
           delay,
-          ease: 'power2.out',
+          ease: 'power3.out',
           scrollTrigger: {
             trigger: el,
             start: 'top 88%',

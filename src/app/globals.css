@@ -78,30 +78,74 @@ body {
   background: var(--terracotta);
 }
 
-/* Custom Cinematic Cursor: Hide default OS cursor on desktop */
-@media (pointer: fine) {
-  html, body, a, button, [role="button"], [data-cursor] {
-    cursor: none !important;
-  }
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--ground);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(214, 167, 108, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--terracotta);
 }
 
-/* Animated architectural square grid */
-@keyframes gridDrift {
+/* Animated architectural forward-moving square grid */
+@keyframes gridMoveForward {
   0% {
     background-position: 0 0;
   }
   100% {
-    background-position: 64px 64px;
+    background-position: 0 64px;
   }
 }
 
 .grid-overlay {
   background-size: 64px 64px;
   background-image: 
-    linear-gradient(to right, rgba(246, 124, 41, 0.07) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(246, 124, 41, 0.07) 1px, transparent 1px);
-  animation: gridDrift 28s linear infinite;
+    linear-gradient(to right, rgba(246, 124, 41, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(246, 124, 41, 0.12) 1px, transparent 1px);
+  animation: gridMoveForward 16s linear infinite;
   will-change: background-position;
+}
+
+/* Floating animated gradient textures shifting back and forth */
+@keyframes gradientFloat1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translate3d(60px, 40px, 0) scale(1.15);
+    opacity: 0.5;
+  }
+}
+
+@keyframes gradientFloat2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1.1);
+    opacity: 0.25;
+  }
+  50% {
+    transform: translate3d(-50px, -40px, 0) scale(0.95);
+    opacity: 0.45;
+  }
+}
+
+.gradient-orb-1 {
+  background: radial-gradient(circle at center, rgba(246, 124, 41, 0.22) 0%, rgba(214, 167, 108, 0.08) 50%, transparent 70%);
+  animation: gradientFloat1 18s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.gradient-orb-2 {
+  background: radial-gradient(circle at center, rgba(133, 43, 54, 0.2) 0%, rgba(44, 62, 160, 0.1) 50%, transparent 75%);
+  animation: gradientFloat2 22s ease-in-out infinite;
+  will-change: transform, opacity;
 }
 
 /* Ambient Film Grain */

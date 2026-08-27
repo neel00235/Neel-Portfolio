@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Maximize2 } from 'lucide-react';
+import { ArrowRight, Maximize2, Play, X } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { WORKS_COPY } from '@/data/content';
@@ -14,10 +14,11 @@ import { playSound } from '@/lib/sound';
 gsap.registerPlugin(ScrollTrigger);
 
 export function SelectedWorks() {
-  const [isDeckFanned, setIsDeckFanned] = useState(true);
   const [modalWork, setModalWork] = useState<ModalWork | null>(null);
+  const [activeCardId, setActiveCardId] = useState<string | null>(null);
 
   const conroyHeaderRef = useRef<HTMLDivElement>(null);
+  const timelineHeaderRef = useRef<HTMLDivElement>(null);
 
   // Conroy campaign works for the fanned deck: 1 hero film + 9 vertical reels
   const conroySection = SECTIONS.find((s) => s.slug === 'brand-films');
@@ -43,31 +44,45 @@ export function SelectedWorks() {
   const railWorks = [...cinemaWorks, ...motionWorks, ...gfxWorks, ...otherWorks];
 
   useEffect(() => {
-    const el = conroyHeaderRef.current;
-    if (!el) return;
-
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     if (prefersReducedMotion) return;
 
-    const ctx = gsap.context(() => {
+    // Ease-in scroll animations for section headers
+    if (timelineHeaderRef.current) {
       gsap.fromTo(
-        el,
-        { opacity: 0, y: 32 },
+        timelineHeaderRef.current,
+        { opacity: 0, y: 35 },
         {
           opacity: 1,
           y: 0,
           duration: 0.8,
           ease: 'power2.out',
           scrollTrigger: {
-            trigger: el,
+            trigger: timelineHeaderRef.current,
             start: 'top 85%',
             toggleActions: 'play none none none',
           },
         }
       );
-    }, el);
+    }
 
-    return () => ctx.revert();
+    if (conroyHeaderRef.current) {
+      gsap.fromTo(
+        conroyHeaderRef.current,
+        { opacity: 0, y: 35 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power2.out',
+          scrollTrigger: {
+            trigger: conroyHeaderRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+          },
+        }
+      );
+    }
   }, []);
 
   const handleCardClick = (work: ModalWork) => {
@@ -75,16 +90,26 @@ export function SelectedWorks() {
     setModalWork(work);
   };
 
+  const handleFannedCardTap = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    playSound('fan');
+    if (activeCardId === id) {
+      setActiveCardId(null);
+    } else {
+      setActiveCardId(id);
+    }
+  };
+
   return (
     <section id="works" className="relative w-full py-24 px-6 md:px-12 border-b border-line overflow-hidden">
       {/* Animated Square Grid Ambient Section Background */}
-      <div className="absolute inset-0 pointer-events-none grid-overlay opacity-35 z-0" aria-hidden="true" />
+      <div className="absolute inset-0 pointer-events-none grid-overlay opacity-40 z-0" aria-hidden="true" />
 
       {/* Lightbox Zoom Video Player Modal */}
       <VideoModal work={modalWork} onClose={() => setModalWork(null)} />
 
       <div className="max-w-shell mx-auto relative z-10">
-        {/* Section Header with Cursive Title */}
+        {/* Section Header with Cursive Title & Bold Subtitle */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 pb-8 border-b border-line-2">
           <div>
             <div className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-2">
@@ -92,10 +117,14 @@ export function SelectedWorks() {
               <span>/</span>
               <span>{WORKS_COPY.navLabel}</span>
             </div>
-            {/* Cursive Signature Title as requested */}
+            {/* Cursive Signature Title */}
             <h2 className="font-script text-cream text-[clamp(4.5rem,10vw,8.5rem)] leading-none select-none tracking-normal drop-shadow-md">
               Selected works
             </h2>
+            {/* Bold Subtitle Requested by User */}
+            <h3 className="font-display font-black text-2xl sm:text-3xl lg:text-4xl text-cream uppercase tracking-tight -mt-2">
+              CURATED EDITORIAL &amp; CINEMATIC EDITS
+            </h3>
           </div>
           <p className="font-sans text-body text-cream/70 max-w-md">
             {WORKS_COPY.intro}
@@ -103,7 +132,7 @@ export function SelectedWorks() {
         </div>
 
         {/* 1. The Lead Film (Absolute Cinema Flagship) */}
-        <div className="mb-24">
+        <div className="mb-20">
           <div className="flex items-center justify-between font-mono text-label text-muted tracking-widest uppercase mb-4">
             <span className="text-terracotta font-semibold">✦ {WORKS_COPY.leadLabel} · ABSOLUTE CINEMA</span>
             <span>
@@ -126,9 +155,9 @@ export function SelectedWorks() {
           </div>
         </div>
 
-        {/* 2. Timeline Selections Rail (Absolute Cinema Prioritized) */}
-        <div className="mb-24">
-          <div className="flex items-center justify-between mb-8">
+        {/* 2. Timeline Selections Rail (Absolute Cinema Prioritized, PAN TO BROWSE Removed) */}
+        <div className="mb-16">
+          <div ref={timelineHeaderRef} className="flex items-center justify-between mb-8 will-change-transform">
             <div>
               <span className="font-mono text-label text-terracotta tracking-widest uppercase block mb-1">
                 ABSOLUTE CINEMA FIRST
@@ -137,9 +166,6 @@ export function SelectedWorks() {
                 {WORKS_COPY.railHeading}
               </h3>
             </div>
-            <span className="font-mono text-label text-muted tracking-wider uppercase">
-              PAN TO BROWSE →
-            </span>
           </div>
 
           {/* Smooth Horizontal Rail */}
@@ -162,7 +188,6 @@ export function SelectedWorks() {
                     duration={work.duration}
                     tone={work.tone}
                   />
-                  {/* Subtle Zoom Affordance Button */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -187,11 +212,11 @@ export function SelectedWorks() {
           </div>
         </div>
 
-        {/* 3. Conroy Campaign Section with Animated Text & Zoom Lightbox */}
+        {/* 3. Conroy Campaign Playing Cards Fanned Deck */}
         <div className="pt-8 border-t border-line-2">
           <div
             ref={conroyHeaderRef}
-            className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 will-change-transform"
+            className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 will-change-transform"
           >
             <div>
               <span className="font-mono text-label text-terracotta tracking-widest uppercase block mb-2 font-semibold">
@@ -202,40 +227,88 @@ export function SelectedWorks() {
               </h3>
             </div>
             <p className="font-sans text-body text-cream/70 max-w-md">
-              {WORKS_COPY.conroyIntro} Click any card to zoom in and play in high-definition.
+              {WORKS_COPY.conroyIntro} Tap any card to elevate it forward and play directly in the deck.
             </p>
           </div>
 
-          {/* Cards Spread View: Clean spacing, no cards covered or obscured */}
-          <div className="w-full py-6">
-            <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-none snap-x snap-mandatory items-center justify-start sm:justify-center">
-              {conroyReels.map((reel, idx) => (
-                <div
-                  key={reel.id}
-                  onClick={() => handleCardClick(reel)}
-                  className="flex-shrink-0 w-44 md:w-52 aspect-[9/16] rounded-xl overflow-hidden border border-line-2 hover:border-terracotta shadow-2xl cursor-pointer transition-all duration-300 ease-out hover:-translate-y-3 hover:scale-105 group relative"
-                  data-cursor="Zoom"
-                >
-                  <VideoFrame
-                    id={reel.id}
-                    title={reel.title}
-                    slug={reel.slug}
-                    aspect={reel.aspect}
-                    duration={reel.duration}
-                    tone={reel.tone}
-                  />
+          {/* Playing Cards Fanned Deck Stage */}
+          <div
+            onClick={() => setActiveCardId(null)}
+            className="relative w-full h-[480px] flex items-center justify-center overflow-visible select-none py-12"
+          >
+            <div className="relative w-full max-w-4xl h-full flex items-center justify-center">
+              {conroyReels.map((reel, idx) => {
+                const total = conroyReels.length;
+                const centerIndex = (total - 1) / 2;
+                const offset = idx - centerIndex;
+                const isActive = activeCardId === reel.id;
 
-                  {/* Zoom Overlay Indicator */}
-                  <div className="absolute inset-0 z-20 pointer-events-none bg-gradient-to-t from-ground/90 via-transparent to-transparent flex items-end p-3 opacity-90 group-hover:opacity-100 transition-opacity">
-                    <div className="flex items-center justify-between w-full font-mono text-[0.62rem] text-cream">
-                      <span className="truncate pr-1">REEL 0{idx + 1}</span>
-                      <span className="text-terracotta font-bold flex items-center gap-1">
-                        <Maximize2 className="w-2.5 h-2.5" /> ZOOM
-                      </span>
-                    </div>
+                // Fanned playing cards spread calculations
+                const angle = isActive ? 0 : offset * 5.5;
+                const translateX = isActive ? 0 : offset * 62;
+                const translateY = isActive ? -50 : Math.abs(offset) * 8;
+                const scale = isActive ? 1.32 : 1;
+                const zIndex = isActive ? 50 : 10 + idx;
+
+                return (
+                  <div
+                    key={reel.id}
+                    onClick={(e) => handleFannedCardTap(e, reel.id)}
+                    className={`absolute w-44 md:w-52 aspect-[9/16] rounded-2xl overflow-hidden border transition-all duration-500 ease-out cursor-pointer will-change-transform ${
+                      isActive
+                        ? 'border-terracotta shadow-[0_28px_60px_-10px_rgba(246,124,41,0.4)] bg-ground'
+                        : 'border-line-2 hover:border-terracotta/70 hover:scale-105 shadow-2xl bg-ground-2'
+                    }`}
+                    style={{
+                      transform: `translate3d(${translateX}px, ${translateY}px, 0) rotate(${angle}deg) scale(${scale})`,
+                      zIndex,
+                    }}
+                    data-cursor={isActive ? 'Close' : 'Play'}
+                  >
+                    {/* If Active: Autoplay video in elevated card */}
+                    {isActive ? (
+                      <div className="relative w-full h-full bg-black">
+                        <iframe
+                          src={`https://player.vimeo.com/video/${reel.id}?autoplay=1&muted=0&loop=1&playsinline=1&controls=1&quality=720p`}
+                          title={reel.title}
+                          className="w-full h-full border-0"
+                          allow="autoplay; fullscreen; picture-in-picture"
+                        />
+                        {/* Close affordance */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveCardId(null);
+                          }}
+                          className="absolute top-3 right-3 z-30 p-1.5 rounded-full bg-ground/80 backdrop-blur-md text-cream hover:text-terracotta border border-line"
+                          aria-label="Dock card"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <VideoFrame
+                          id={reel.id}
+                          title={reel.title}
+                          slug={reel.slug}
+                          aspect={reel.aspect}
+                          duration={reel.duration}
+                          tone={reel.tone}
+                        />
+                        {/* Fanned Card Label Overlay */}
+                        <div className="absolute inset-x-0 bottom-0 z-10 p-3 bg-gradient-to-t from-ground/95 via-ground/60 to-transparent flex items-center justify-between font-mono text-[0.62rem] text-cream">
+                          <span className="truncate pr-1">REEL 0{idx + 1}</span>
+                          <span className="text-terracotta font-bold flex items-center gap-1">
+                            <Play className="w-2.5 h-2.5 fill-current" /> TAP
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

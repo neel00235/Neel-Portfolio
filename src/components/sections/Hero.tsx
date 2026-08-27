@@ -7,11 +7,55 @@ import gsap from 'gsap';
 import { HERO } from '@/data/content';
 import { STATS } from '@/data/portfolio.generated';
 import { Magnetic } from '@/components/cursor/Magnetic';
-import { VideoFrame } from '@/components/video/VideoFrame';
+
+function AutoplayReel({
+  id,
+  title,
+  aspect,
+  badge,
+}: {
+  id: string;
+  title: string;
+  aspect: '9:16' | '16:9';
+  badge: string;
+}) {
+  const isVertical = aspect === '9:16';
+  return (
+    <div
+      className={`flex flex-col gap-2 group ${
+        isVertical ? 'max-w-[210px]' : 'max-w-[380px]'
+      } w-full mx-auto`}
+    >
+      <div
+        className={`relative w-full ${
+          isVertical ? 'aspect-[9/16]' : 'aspect-video'
+        } rounded-xl overflow-hidden border border-line-2 hover:border-terracotta transition-all duration-400 shadow-xl bg-ground-2 hover:-translate-y-2`}
+      >
+        <iframe
+          src={`https://player.vimeo.com/video/${id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&quality=720p`}
+          title={title}
+          className="absolute inset-0 w-full h-full border-0 pointer-events-none"
+          allow="autoplay; fullscreen; picture-in-picture"
+          loading="eager"
+        />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
+      </div>
+      <div className="flex justify-between items-center font-mono text-[0.66rem] text-muted px-1">
+        <span className="text-cream font-medium truncate pr-2 group-hover:text-terracotta transition-colors">
+          {title}
+        </span>
+        <span className="text-terracotta font-semibold whitespace-nowrap">{badge}</span>
+      </div>
+    </div>
+  );
+}
 
 export function Hero() {
+  const heroRef = useRef<HTMLElement>(null);
   const wordmarkRef = useRef<HTMLHeadingElement>(null);
+  const roleRef = useRef<HTMLDivElement>(null);
   const leadRef = useRef<HTMLParagraphElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
   const portraitRef = useRef<HTMLElement>(null);
   const showreelRef = useRef<HTMLDivElement>(null);
 
@@ -24,17 +68,35 @@ export function Hero() {
       if (wordmarkRef.current) {
         gsap.fromTo(
           wordmarkRef.current,
-          { opacity: 0, y: 40 },
-          { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out', delay: 0.15 }
+          { opacity: 0, y: 50, scale: 0.98 },
+          { opacity: 1, y: 0, scale: 1, duration: 1.1, ease: 'power3.out', delay: 0.2 }
         );
       }
 
-      // In-animation for lead bio text
+      // Role header in-animation
+      if (roleRef.current) {
+        gsap.fromTo(
+          roleRef.current,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', delay: 0.35 }
+        );
+      }
+
+      // Lead bio text in-animation
       if (leadRef.current) {
         gsap.fromTo(
           leadRef.current,
-          { opacity: 0, y: 24 },
-          { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', delay: 0.35 }
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: 0.45 }
+        );
+      }
+
+      // CTAs in-animation
+      if (ctaRef.current) {
+        gsap.fromTo(
+          ctaRef.current,
+          { opacity: 0, y: 20 },
+          { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', delay: 0.55 }
         );
       }
 
@@ -42,8 +104,8 @@ export function Hero() {
       if (portraitRef.current) {
         gsap.fromTo(
           portraitRef.current,
-          { opacity: 0, scale: 0.92, x: 40 },
-          { opacity: 1, scale: 1, x: 0, duration: 1.0, ease: 'back.out(1.2)', delay: 0.25 }
+          { opacity: 0, scale: 0.9, x: 45 },
+          { opacity: 1, scale: 1, x: 0, duration: 1.2, ease: 'back.out(1.4)', delay: 0.3 }
         );
       }
 
@@ -51,19 +113,20 @@ export function Hero() {
       if (showreelRef.current) {
         gsap.fromTo(
           showreelRef.current,
-          { opacity: 0, y: 30 },
-          { opacity: 1, y: 0, duration: 0.8, ease: 'power2.out', delay: 0.55 }
+          { opacity: 0, y: 35 },
+          { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: 0.65 }
         );
       }
-    });
+    }, heroRef);
 
     return () => ctx.revert();
   }, []);
 
   return (
     <section
+      ref={heroRef}
       id="about"
-      className="relative w-full min-h-[100svh] pt-28 pb-16 px-6 md:px-12 flex flex-col justify-center overflow-hidden border-b border-line"
+      className="relative w-full min-h-[100svh] pt-28 pb-14 px-6 md:px-12 flex flex-col justify-center overflow-hidden border-b border-line"
     >
       <div className="max-w-shell mx-auto w-full">
         {/* Top Kicker */}
@@ -84,8 +147,11 @@ export function Hero() {
               NEEL PATEL
             </h1>
 
-            {/* Role Header */}
-            <div className="flex items-center gap-3 font-mono text-terracotta text-label uppercase tracking-[0.24em] font-semibold mb-6">
+            {/* Role Header with In-Animation */}
+            <div
+              ref={roleRef}
+              className="flex items-center gap-3 font-mono text-terracotta text-label uppercase tracking-[0.24em] font-semibold mb-6 will-change-transform"
+            >
               <span>{HERO.rolePrefix}</span>
               <span className="text-muted">{HERO.roleDot}</span>
               <span>{HERO.roleSuffix}</span>
@@ -103,9 +169,9 @@ export function Hero() {
               <span className="font-script text-2xl text-cream">felt</span>.
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap items-center gap-4 mb-8">
-              <Magnetic strength={0.16} cursor={HERO.ctaPrimary.cursor}>
+            {/* CTAs with In-Animation */}
+            <div ref={ctaRef} className="flex flex-wrap items-center gap-4 mb-8 will-change-transform">
+              <Magnetic strength={0.15} cursor={HERO.ctaPrimary.cursor}>
                 <a
                   href={HERO.ctaPrimary.href}
                   className="flex items-center gap-2 px-6 py-3 rounded-full bg-terracotta hover:bg-[#ff8838] text-ground font-mono text-label font-bold tracking-widest uppercase shadow-lg transition-all duration-200"
@@ -115,7 +181,7 @@ export function Hero() {
                 </a>
               </Magnetic>
 
-              <Magnetic strength={0.16} cursor={HERO.ctaSecondary.cursor}>
+              <Magnetic strength={0.15} cursor={HERO.ctaSecondary.cursor}>
                 <a
                   href={HERO.ctaSecondary.href}
                   className="flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-cream text-cream font-mono text-label tracking-widest uppercase transition-all duration-200"
@@ -126,7 +192,7 @@ export function Hero() {
               </Magnetic>
             </div>
 
-            {/* Tags (Tightened spacing) */}
+            {/* Tags (Tightened vertical spacing) */}
             <div className="flex flex-wrap gap-2 pt-4 border-t border-line-2">
               {HERO.tags.map((tag) => (
                 <span
@@ -191,75 +257,44 @@ export function Hero() {
           </div>
         </div>
 
-        {/* Hero Showreel Autoplay Trio: 1 Masking Edit + 2 Motion Edits */}
-        <div ref={showreelRef} className="mt-12 pt-8 border-t border-line-2 flex flex-col gap-4">
+        {/* Hero Showreel Autoplay Trio: 2 Vertical 9:16 Reels + 1 Widescreen 16:9 Reel */}
+        <div ref={showreelRef} className="mt-12 pt-8 border-t border-line-2 flex flex-col gap-6">
           <div className="flex items-center justify-between font-mono text-label text-muted tracking-widest uppercase">
-            <span className="text-terracotta font-semibold">✦ FEATURED SHOWREEL · 1 MASKING + 2 MOTION EDITS</span>
-            <span className="hidden sm:inline">AUTOPLAY REELS</span>
+            <span className="text-terracotta font-semibold">
+              ✦ FEATURED AUTOPLAY SHOWREEL · 1 MASKING + 2 MOTION EDITS
+            </span>
+            <span className="hidden sm:inline text-xs">LIVE PREVIEW</span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-            {/* 1 Masking Edit */}
-            <div className="flex flex-col gap-2 group">
-              <div className="rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-all duration-300 shadow-lg hover:-translate-y-1">
-                <VideoFrame
-                  id="1219762955"
-                  title="LJ — Masked Edit"
-                  slug="lj-masked-edit"
-                  aspect="9:16"
-                  duration={15}
-                  priority={true}
-                  autoPlayLead={true}
-                />
-              </div>
-              <div className="flex justify-between items-center font-mono text-[0.68rem] text-muted px-1">
-                <span className="text-cream font-medium">LJ — Masked Edit</span>
-                <span className="text-terracotta">MASKING · 9:16</span>
-              </div>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-end justify-center">
+            {/* 1 Masking Edit: 9:16 Vertical Reel */}
+            <AutoplayReel
+              id="1219762955"
+              title="LJ — Masked Edit"
+              aspect="9:16"
+              badge="MASKING · 9:16"
+            />
 
-            {/* Motion Edit 1 */}
-            <div className="flex flex-col gap-2 group">
-              <div className="rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-all duration-300 shadow-lg hover:-translate-y-1">
-                <VideoFrame
-                  id="1219763230"
-                  title="LJ — Velocity / Poster Boy"
-                  slug="lj-velocity-poster-boy"
-                  aspect="9:16"
-                  duration={24}
-                  priority={true}
-                  autoPlayLead={true}
-                />
-              </div>
-              <div className="flex justify-between items-center font-mono text-[0.68rem] text-muted px-1">
-                <span className="text-cream font-medium">LJ — Velocity / Poster Boy</span>
-                <span className="text-terracotta">MOTION · 9:16</span>
-              </div>
-            </div>
+            {/* Motion Edit 1: 9:16 Vertical Reel */}
+            <AutoplayReel
+              id="1219763230"
+              title="LJ — Velocity / Poster Boy"
+              aspect="9:16"
+              badge="MOTION · 9:16"
+            />
 
-            {/* Motion Edit 2 */}
-            <div className="flex flex-col gap-2 group">
-              <div className="rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-all duration-300 shadow-lg hover:-translate-y-1">
-                <VideoFrame
-                  id="1219763331"
-                  title="Stranger Things"
-                  slug="stranger-things"
-                  aspect="16:9"
-                  duration={25}
-                  priority={true}
-                  autoPlayLead={true}
-                />
-              </div>
-              <div className="flex justify-between items-center font-mono text-[0.68rem] text-muted px-1">
-                <span className="text-cream font-medium">Stranger Things</span>
-                <span className="text-terracotta">MOTION · 16:9</span>
-              </div>
-            </div>
+            {/* Motion Edit 2: 16:9 Widescreen Reel */}
+            <AutoplayReel
+              id="1219763331"
+              title="Stranger Things"
+              aspect="16:9"
+              badge="MOTION · 16:9"
+            />
           </div>
         </div>
 
-        {/* Editorial Body Prose (Verbatim B5, B6, B7 with tightened spacing) */}
-        <div className="mt-10 pt-8 border-t border-line-2 grid grid-cols-1 md:grid-cols-3 gap-8 font-sans text-body text-cream/70 leading-relaxed">
+        {/* Editorial Body Prose (Verbatim B5, B6, B7 with tightened padding) */}
+        <div className="mt-10 pt-6 border-t border-line-2 grid grid-cols-1 md:grid-cols-3 gap-8 font-sans text-body text-cream/70 leading-relaxed">
           <p>{HERO.body1}</p>
           <p>{HERO.body2}</p>
           <p>{HERO.body3}</p>
