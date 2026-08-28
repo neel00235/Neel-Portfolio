@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import gsap from 'gsap';
 import { playSound } from '@/lib/sound';
 
@@ -211,7 +212,7 @@ export function Curtain() {
   // If not mounted or already dismissed, render nothing (no flash on repeat visit)
   if (!mounted || isDismissed) return null;
 
-  return (
+  return createPortal(
     <div
       onClick={dismissCurtain}
       tabIndex={0}
@@ -228,7 +229,7 @@ export function Curtain() {
       {/* Top Leaf (Height 50svh, with SVG Mask Knockout) */}
       <div
         ref={topLeafRef}
-        className={`absolute top-0 inset-x-0 h-[50svh] overflow-hidden will-change-transform ${
+        className={`absolute top-0 inset-x-0 h-[50svh] overflow-hidden ${
           showRgbSplit ? 'animate-rgbSplit' : ''
         }`}
       >
@@ -281,7 +282,7 @@ export function Curtain() {
       {/* Bottom Leaf (Height 50svh, with SVG Mask Knockout) */}
       <div
         ref={bottomLeafRef}
-        className={`absolute bottom-0 inset-x-0 h-[50svh] overflow-hidden will-change-transform ${
+        className={`absolute bottom-0 inset-x-0 h-[50svh] overflow-hidden ${
           showRgbSplit ? 'animate-rgbSplit' : ''
         }`}
       >
@@ -341,6 +342,7 @@ export function Curtain() {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

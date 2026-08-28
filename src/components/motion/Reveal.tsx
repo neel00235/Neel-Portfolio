@@ -114,9 +114,7 @@ export function Reveal({
   return (
     <Component
       ref={elRef as any}
-      className={`will-change-[transform,opacity] ${
-        variant === 'mask' ? 'overflow-hidden' : ''
-      } ${className}`}
+      className={`${variant === 'mask' ? 'overflow-hidden' : ''} ${className}`}
     >
       {children}
     </Component>

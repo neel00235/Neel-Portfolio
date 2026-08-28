@@ -14,6 +14,8 @@ interface SmoothScrollerProps {
   children: React.ReactNode;
 }
 
+export const scrollState = { vel: 0 };
+
 export function SmoothScroller({ children }: SmoothScrollerProps) {
   const [lenis, setLenis] = useState<Lenis | null>(null);
   const lenisRef = useRef<Lenis | null>(null);
@@ -45,7 +47,7 @@ export function SmoothScroller({ children }: SmoothScrollerProps) {
     gsap.ticker.add(updateTicker);
     gsap.ticker.lagSmoothing(0);
 
-    // R-17: Scroll-velocity coupling
+    // Scroll velocity coupling via exported module variable (Defect 2e)
     const velTween = gsap.to({}, {
       scrollTrigger: {
         trigger: document.body,
@@ -53,10 +55,7 @@ export function SmoothScroller({ children }: SmoothScrollerProps) {
         end: 'bottom bottom',
         onUpdate: (self) => {
           const rawVel = self.getVelocity();
-          const normalized = Math.min(1, Math.abs(rawVel) / 2500);
-          document.documentElement.style.setProperty('--vel', normalized.toFixed(3));
-          const skew = Math.max(-3, Math.min(3, rawVel / 750));
-          document.documentElement.style.setProperty('--scroll-skew', `${skew.toFixed(2)}deg`);
+          scrollState.vel = Math.min(1, Math.abs(rawVel) / 2500);
         },
       },
     });

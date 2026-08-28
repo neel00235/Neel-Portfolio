@@ -72,7 +72,7 @@ export function PlayerChrome({
       {/* Progress track */}
       <div className="relative flex-1 h-1 mx-2 bg-cream/15 rounded-full overflow-hidden">
         <div
-          className="h-full w-full bg-terracotta origin-left transition-transform duration-100 will-change-transform"
+          className="h-full w-full bg-terracotta origin-left transition-transform duration-100"
           style={{ transform: `scaleX(${Math.min(1, Math.max(0, progress))})` }}
         />
       </div>

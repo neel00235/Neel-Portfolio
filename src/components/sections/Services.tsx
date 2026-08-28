@@ -39,20 +39,18 @@ export function Services() {
         );
       }
 
-      // R-18 Set Piece 6: Services Sheet Stack on desktop
-      const mm = gsap.matchMedia();
-      mm.add('(min-width: 60rem)', () => {
-        cardRefs.current.forEach((card, idx) => {
-          if (!card) return;
-          gsap.to(card, {
-            scrollTrigger: {
-              trigger: card,
-              start: `top ${120 + idx * 24}px`,
-              end: 'bottom 40%',
-              pin: true,
-              pinSpacing: false,
-            },
-          });
+      // Services cards scrubbed vertical offset (subtle stacking feel with zero pin on grid children per rule 7)
+      cardRefs.current.forEach((card, idx) => {
+        if (!card) return;
+        gsap.to(card, {
+          y: -idx * 12,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: card,
+            start: 'top bottom',
+            end: 'top 30%',
+            scrub: true,
+          },
         });
       });
     }, sectionRef);

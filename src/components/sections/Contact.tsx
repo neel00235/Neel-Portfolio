@@ -161,7 +161,7 @@ export function Contact() {
           <div className="lg:col-span-6 flex flex-col">
             <h2 ref={headlineRef} className="font-display font-black text-huge sm:text-mega text-cream uppercase leading-[0.9] tracking-tight mb-8 font-variation-wonk">
               <SplitText text={CONTACT_COPY.headlinePrefix} by="char" />
-              <span className="font-script text-terracotta lowercase text-[1.1em] font-normal leading-none mx-2">
+              <span className="inline-block font-script text-terracotta lowercase text-[0.95em] font-normal leading-[0.72] -my-[0.18em] mx-2">
                 {CONTACT_COPY.headlineScript}
               </span>
               <SplitText text={CONTACT_COPY.headlineMiddle} by="char" />

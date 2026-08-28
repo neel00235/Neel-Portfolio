@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Maximize2, Play, X } from 'lucide-react';
 import gsap from 'gsap';
@@ -17,7 +18,7 @@ gsap.registerPlugin(ScrollTrigger);
 
 export function SelectedWorks() {
   const [modalWork, setModalWork] = useState<ModalWork | null>(null);
-  const [activeCardId, setActiveCardId] = useState<string | null>(null);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const worksRef = useRef<HTMLElement>(null);
   const worksHeaderRef = useRef<HTMLDivElement>(null);
@@ -26,13 +27,11 @@ export function SelectedWorks() {
   const railRef = useRef<HTMLDivElement>(null);
   const conroyHeaderRef = useRef<HTMLDivElement>(null);
   const timelineHeaderRef = useRef<HTMLDivElement>(null);
-  const deckStageRef = useRef<HTMLDivElement>(null);
 
-  // Conroy campaign works for the fanned deck: 4 representative vertical cuts in a symmetrical arc
+  // Conroy campaign works: 1 hero film + 9 vertical reels (Defect 7)
   const conroySection = SECTIONS.find((s) => s.slug === 'brand-films');
   const conroyHero = conroySection?.works[0] || UNIQUE_WORKS[0];
-  const conroyReels = conroySection?.works.slice(1, 5) || [];
-  const [isFanned, setIsFanned] = useState(false);
+  const conroyReels = conroySection?.works.slice(1) || [];
 
   // Put Absolute Cinema and Motion edits up front
   const cinemaSection = SECTIONS.find((s) => s.slug === 'absolute-cinema');
@@ -50,11 +49,15 @@ export function SelectedWorks() {
     (w) => !['absolute-cinema', 'motion-graphics', 'event-gfx'].includes(w.discipline)
   );
 
-  const railWorks = [...cinemaWorks, ...motionWorks, ...gfxWorks, ...otherWorks];
+  const railWorks = [...cinemaWorks, ...motionWorks, ...gfxWorks, ...otherWorks].slice(0, 12);
 
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
+    const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setPrefersReducedMotion(mql.matches);
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
+    mql.addEventListener('change', handler);
+
+    if (mql.matches) return;
 
     const ctx = gsap.context(() => {
       // 1. Section Header trigger
@@ -114,79 +117,7 @@ export function SelectedWorks() {
         );
       }
 
-      // 4. Lead film tone match scrub (Set piece 3)
-      if (leadFilmRef.current) {
-        gsap.to(leadFilmRef.current, {
-          scale: 1.01,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: leadFilmRef.current,
-            start: 'top center',
-            end: 'bottom center',
-            scrub: true,
-          },
-        });
-      }
-
-      // 5. Conroy deck fan on scroll into view
-      if (deckStageRef.current) {
-        gsap.fromTo(
-          deckStageRef.current,
-          { opacity: 0.9, scale: 0.98 },
-          {
-            opacity: 1,
-            scale: 1,
-            duration: 0.7,
-            ease: 'power2.out',
-            scrollTrigger: {
-              trigger: deckStageRef.current,
-              start: 'top 80%',
-              toggleActions: 'play none none none',
-              onEnter: () => setIsFanned(true),
-              onLeaveBack: () => setIsFanned(false),
-            },
-          }
-        );
-      }
-
-      // 6. Set piece 4: Pinned Horizontal Rail on desktop (min-width: 60rem per R-18)
-      const mm = gsap.matchMedia();
-      mm.add('(min-width: 60rem)', () => {
-        if (railRef.current && railContainerRef.current) {
-          gsap.to(railRef.current, {
-            x: () => -(railRef.current!.scrollWidth - railContainerRef.current!.clientWidth),
-            ease: 'none',
-            scrollTrigger: {
-              trigger: railContainerRef.current,
-              start: 'top 15%',
-              end: () => `+=${Math.max(800, railRef.current!.scrollWidth - window.innerWidth)}`,
-              pin: true,
-              scrub: 0.8,
-              invalidateOnRefresh: true,
-            },
-          });
-        }
-      });
     }, worksRef);
-
-    // Smooth horizontal scrolling on wheel inside rail (element-scoped, never window)
-    const rail = railRef.current;
-    if (rail) {
-      const onWheel = (e: WheelEvent) => {
-        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-          const maxScroll = rail.scrollWidth - rail.clientWidth;
-          if ((e.deltaY > 0 && rail.scrollLeft < maxScroll) || (e.deltaY < 0 && rail.scrollLeft > 0)) {
-            e.preventDefault();
-            rail.scrollBy({ left: e.deltaY * 1.5, behavior: 'smooth' });
-          }
-        }
-      };
-      rail.addEventListener('wheel', onWheel, { passive: false });
-      return () => {
-        rail.removeEventListener('wheel', onWheel);
-        ctx.revert();
-      };
-    }
 
     return () => ctx.revert();
   }, []);
@@ -194,16 +125,6 @@ export function SelectedWorks() {
   const handleCardClick = (work: ModalWork) => {
     playSound('click');
     setModalWork(work);
-  };
-
-  const handleFannedCardTap = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    playSound('fan');
-    if (activeCardId === id) {
-      setActiveCardId(null);
-    } else {
-      setActiveCardId(id);
-    }
   };
 
   return (
@@ -272,7 +193,7 @@ export function SelectedWorks() {
         {/* 2. Timeline Selections Rail — Absolute Cinema first, browsable by scroll alone */}
         <div ref={railContainerRef} className="mb-16">
           <Reveal variant="up">
-            <div ref={timelineHeaderRef} className="flex items-center justify-between mb-8 will-change-transform">
+            <div ref={timelineHeaderRef} className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
               <div>
                 <span className="font-mono text-label text-terracotta tracking-widest uppercase block mb-1">
                   ABSOLUTE CINEMA FIRST
@@ -281,6 +202,14 @@ export function SelectedWorks() {
                   <SplitText text={WORKS_COPY.railHeading} by="word" />
                 </h3>
               </div>
+              <Link
+                href="/projects"
+                className="inline-flex items-center gap-2 font-mono text-label text-terracotta hover:text-cream tracking-widest uppercase transition-colors"
+                data-cursor="Open"
+              >
+                <span>VIEW ALL (52)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </Reveal>
 
@@ -335,15 +264,56 @@ export function SelectedWorks() {
                 </div>
               </Reveal>
             ))}
+
+            {/* View All End Card */}
+            <Reveal variant="up" delay={0.24}>
+              <div className="flex-shrink-0 w-80 md:w-96 snap-start flex flex-col justify-center items-center gap-4 p-8 rounded-lg border border-line-2 bg-ground-2 text-center h-[280px]">
+                <span className="font-mono text-label text-terracotta tracking-widest uppercase">
+                  52 TOTAL EDITS
+                </span>
+                <p className="font-sans text-body text-cream/70 max-w-xs text-xs leading-relaxed">
+                  Browse the complete archive of commercial campaigns, trailers, and craft edits.
+                </p>
+                <Link
+                  href="/projects"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-terracotta hover:bg-[#ff8838] text-ground font-mono text-label font-semibold tracking-widest uppercase transition-colors"
+                  data-cursor="Open"
+                >
+                  <span>ALL EDITS (52)</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            </Reveal>
           </div>
         </div>
 
-        {/* 3. Conroy Campaign Playing Cards Fanned Deck */}
-        <div className="pt-8 border-t border-line-2">
+        {/* 3. Conroy Campaign Section: Looping Background Hero + 9 Reel Cards (Defect 7) */}
+        <div className="relative pt-12 pb-10 border-t border-line-2 rounded-3xl overflow-hidden px-4 sm:px-8 my-10">
+          {/* Continuously looping muted background of cinematic hero (works[0]) */}
+          <div className="absolute inset-0 -z-10 pointer-events-none overflow-hidden bg-black">
+            <Image
+              src={`/posters/${conroyHero.id}.webp`}
+              alt={conroyHero.title}
+              fill
+              sizes="100vw"
+              className="object-cover opacity-50"
+            />
+            {!prefersReducedMotion && (
+              <iframe
+                src={`https://player.vimeo.com/video/${conroyHero.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
+                title={conroyHero.title}
+                className="absolute inset-0 w-full h-full border-0 pointer-events-none scale-105 opacity-35"
+                allow="autoplay; fullscreen; picture-in-picture"
+              />
+            )}
+            {/* Dark scrim so cards remain readable and prominent */}
+            <div className="absolute inset-0 bg-gradient-to-b from-ground/92 via-ground/85 to-ground/96" />
+          </div>
+
           <Reveal variant="up">
             <div
               ref={conroyHeaderRef}
-              className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 will-change-transform"
+              className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10"
             >
               <div>
                 <span className="font-mono text-label text-terracotta tracking-widest uppercase block mb-2 font-semibold">
@@ -354,102 +324,37 @@ export function SelectedWorks() {
                 </h3>
               </div>
               <p className="font-sans text-body text-cream/70 max-w-md">
-                {WORKS_COPY.conroyIntro} Tap any card to elevate it forward and play directly in the deck.
+                {WORKS_COPY.conroyIntro} 1 cinematic hero film with all 9 vertical reels delivered for the campaign.
               </p>
             </div>
           </Reveal>
 
-          {/* Playing Cards Fanned Deck Stage */}
-          <Reveal variant="scale" delay={0.15}>
-            <div
-              ref={deckStageRef}
-              onClick={() => setActiveCardId(null)}
-              className="relative w-full h-[480px] flex items-center justify-center overflow-visible select-none py-12"
-            >
-            <div className="relative w-full max-w-4xl h-full flex items-center justify-center">
-              {conroyReels.map((reel, idx) => {
-                const centerIndex = 1.5;
-                const offset = idx - centerIndex;
-                const isActive = activeCardId === reel.id;
-
-                // Symmetrical 4-card arc calculations
-                const angle = isActive ? 0 : isFanned ? offset * 11 : offset * 2.2;
-                const translateX = isActive ? 0 : isFanned ? offset * 135 : offset * 8;
-                const translateY = isActive ? -60 : isFanned ? Math.abs(offset) * 16 : 0;
-                const scale = isActive ? 1.25 : 1;
-                const zIndex = isActive ? 50 : 10 + idx;
-
-                return (
-                  <div
-                    key={reel.id}
-                    onClick={(e) => handleFannedCardTap(e, reel.id)}
-                    className={`conroy-card absolute w-44 md:w-52 aspect-[9/16] rounded-2xl overflow-hidden border transition-all duration-500 ease-out cursor-pointer will-change-transform ${
-                      isActive
-                        ? 'border-terracotta shadow-[0_28px_60px_-10px_rgba(246,124,41,0.4)] bg-ground'
-                        : 'border-line-2 hover:border-terracotta/70 hover:scale-105 shadow-2xl bg-ground-2'
-                    }`}
-                    style={{
-                      transform: `translate3d(${translateX}px, ${translateY}px, 0) rotate(${angle}deg) scale(${scale})`,
-                      zIndex,
-                    }}
-                    data-cursor={isActive ? 'Close' : 'Play'}
-                  >
-                    {/* If Active: Autoplay video in elevated card */}
-                    {isActive ? (
-                      <div className="relative w-full h-full bg-black">
-                        <iframe
-                          src={`https://player.vimeo.com/video/${reel.id}?autoplay=1&muted=0&loop=1&playsinline=1&controls=1&quality=720p`}
-                          title={reel.title}
-                          className="w-full h-full border-0"
-                          allow="autoplay; fullscreen; picture-in-picture"
-                        />
-                        {/* Close affordance */}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveCardId(null);
-                          }}
-                          className="absolute top-3 right-3 z-30 p-1.5 rounded-full bg-ground/95 md:bg-ground/80 md:backdrop-blur-md text-cream hover:text-terracotta border border-line"
-                          aria-label="Dock card"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <VideoFrame
-                          id={reel.id}
-                          title={reel.title}
-                          slug={reel.slug}
-                          aspect={reel.aspect}
-                          duration={reel.duration}
-                          tone={reel.tone}
-                        />
-                        {/* Fanned Card Label Overlay */}
-                        <div className="absolute inset-x-0 bottom-0 z-10 p-3 bg-gradient-to-t from-ground/95 via-ground/70 to-transparent flex flex-col gap-1 font-mono text-[0.62rem] text-cream">
-                          <div className="flex items-center justify-between">
-                            <span className="truncate pr-1 font-bold">{reel.title}</span>
-                            <span className="text-terracotta font-bold flex items-center gap-1">
-                              <Play className="w-2.5 h-2.5 fill-current" /> TAP
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-muted">
-                            <span>{reel.discipline}</span>
-                            <span>·</span>
-                            <span className="px-1 py-0.2 rounded bg-line/60 text-terracotta font-semibold">{reel.aspect}</span>
-                            <span>·</span>
-                            <span>{reel.duration}s</span>
-                          </div>
-                        </div>
-                      </>
-                    )}
+          {/* 9 Vertical Reel Cards Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-6">
+            {conroyReels.map((reel, idx) => (
+              <Reveal key={reel.id} variant="up" delay={0.04 * (idx % 3)}>
+                <div
+                  className="flex flex-col gap-2 group"
+                  style={{ contentVisibility: 'auto', containIntrinsicSize: '260px' }}
+                >
+                  <VideoFrame
+                    id={reel.id}
+                    title={reel.title}
+                    slug={reel.slug}
+                    aspect="9:16"
+                    duration={reel.duration}
+                    tone={reel.tone}
+                  />
+                  <div className="flex justify-between items-center font-mono text-[0.66rem] text-muted px-1">
+                    <span className="text-cream font-medium truncate pr-2 group-hover:text-terracotta transition-colors">
+                      {reel.title}
+                    </span>
+                    <span className="text-terracotta font-semibold whitespace-nowrap">{reel.duration}s</span>
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
-          </Reveal>
         </div>
       </div>
     </section>

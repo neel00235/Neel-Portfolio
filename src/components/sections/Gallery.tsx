@@ -123,22 +123,25 @@ export function Gallery() {
         );
       }
 
-      // 3. Grid velocity skew (R-17)
+      // 3. Grid velocity skew (single writer via quickTo per Defect 8 & 2d)
       if (gridRef.current) {
-        gsap.to(gridRef.current, {
-          skewY: 0,
-          scaleY: 1,
-          scrollTrigger: {
-            trigger: gridRef.current,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 0.2,
-            onUpdate: (self) => {
-              const vel = self.getVelocity();
-              const skew = Math.max(-2.5, Math.min(2.5, vel / 900));
-              const scale = 1 - Math.min(0.015, Math.abs(vel) / 30000);
-              gsap.set(gridRef.current, { skewY: skew, scaleY: scale });
-            },
+        const setSkew = gsap.quickTo(gridRef.current, 'skewY', {
+          duration: 0.4,
+          ease: 'power3.out',
+        });
+
+        let lastSkew = 0;
+        ScrollTrigger.create({
+          trigger: gridRef.current,
+          start: 'top bottom',
+          end: 'bottom top',
+          onUpdate: (self) => {
+            const rawVel = self.getVelocity();
+            const skew = gsap.utils.clamp(-6, 6, rawVel / 600);
+            if (Math.abs(skew - lastSkew) > 0.05 || (skew === 0 && lastSkew !== 0)) {
+              lastSkew = skew;
+              setSkew(skew);
+            }
           },
         });
       }
@@ -241,9 +244,10 @@ export function Gallery() {
           </div>
         </Reveal>
 
-        {/* 12-Tile Showcase Grid (Tightened spacing & click to zoom) */}
-        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {displayWorks.map((work, idx) => (
+        {/* 12-Tile Showcase Grid (cheaper wrapper for skew per Defect 8) */}
+        <div ref={gridRef} className="w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            {displayWorks.map((work, idx) => (
             <Reveal key={work.id} variant="up" delay={0.04 * (idx % 6)}>
               <div
                 className="gallery-tile flex flex-col gap-3 group"
@@ -296,7 +300,8 @@ export function Gallery() {
                 </div>
               </div>
             </Reveal>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* View All 52 Edits Band */}

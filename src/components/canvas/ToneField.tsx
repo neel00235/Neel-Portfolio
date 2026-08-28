@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Renderer, Camera, Transform, Program, Mesh, Geometry } from 'ogl';
 import { useTone, hexToRgb } from '@/store/useTone';
+import { scrollState } from '@/components/scroller/SmoothScroller';
 
 const vertex = /* glsl */ `
   attribute vec2 uv;
@@ -255,9 +256,8 @@ export function ToneField() {
       if (isVisible) {
         program.uniforms.uTime.value = time * 0.001;
 
-        // Velocity coupling (R-17 & R-35)
-        const velStr = getComputedStyle(document.documentElement).getPropertyValue('--vel');
-        const velVal = parseFloat(velStr) || 0;
+        // Velocity coupling without getComputedStyle (Defect 2e)
+        const velVal = scrollState.vel;
         program.uniforms.uVelocity.value += (velVal - program.uniforms.uVelocity.value) * 0.1;
 
         // Smooth uTone interpolation on tone changes

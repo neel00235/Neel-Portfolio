@@ -82,7 +82,7 @@ export function SplitText({
                     key={charIdx}
                     className="inline-block overflow-hidden align-top"
                   >
-                    <span className="split-unit inline-block will-change-transform">
+                    <span className="split-unit inline-block">
                       {char}
                     </span>
                   </span>
@@ -97,7 +97,7 @@ export function SplitText({
           : words.map((word, wordIdx) => (
               <span key={wordIdx} className="inline-block">
                 <span className="inline-block overflow-hidden align-top">
-                  <span className="split-unit inline-block will-change-transform">
+                  <span className="split-unit inline-block">
                     {word}
                   </span>
                 </span>

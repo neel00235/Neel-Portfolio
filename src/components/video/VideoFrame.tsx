@@ -41,6 +41,17 @@ export function VideoFrame({
   const [hoverMounted, setHoverMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === containerRef.current);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   const { activeFullId, activePreviewId, playFull, stopFull, playPreview, stopPreview } =
     useVideoRegistry();
@@ -194,7 +205,12 @@ export function VideoFrame({
       onPointerLeave={handlePointerLeave}
       onMouseEnter={handlePointerEnter}
       onMouseLeave={handlePointerLeave}
-      className={`group relative overflow-hidden rounded-lg bg-ground-2 border border-line-2 hover:border-terracotta/60 hover:-translate-y-1.5 hover:shadow-[0_16px_36px_-8px_rgba(246,124,41,0.18)] select-none transition-all duration-500 ease-out cursor-pointer ${getAspectClass(
+      style={isFullscreen ? { backgroundColor: '#000' } : undefined}
+      className={`group relative overflow-hidden ${
+        isFullscreen
+          ? '!rounded-none !border-0 bg-black !aspect-auto'
+          : 'rounded-lg bg-ground-2 border border-line-2 hover:border-terracotta/60 hover:-translate-y-1.5 hover:shadow-[0_16px_36px_-8px_rgba(246,124,41,0.18)]'
+      } select-none transition-all duration-500 ease-out cursor-pointer ${getAspectClass(
         aspect
       )} ${className}`}
       data-cursor={isPlayingFull ? 'Sound' : 'Play'}

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { Play, ArrowUpRight } from 'lucide-react';
 import gsap from 'gsap';
@@ -20,6 +20,7 @@ function AutoplayReel({
   work: Work;
   badge?: string;
 }) {
+  const [iframeLoaded, setIframeLoaded] = useState(false);
   const isVertical = work.aspect === '9:16';
   const aspectClass =
     work.aspect === '9:16'
@@ -42,16 +43,28 @@ function AutoplayReel({
   return (
     <div className={`flex flex-col gap-2 group ${maxWClass} w-full mx-auto`}>
       <div
-        className={`relative w-full ${aspectClass} rounded-xl overflow-hidden border border-line-2 hover:border-terracotta transition-all duration-400 shadow-xl bg-ground-2 hover:-translate-y-2`}
+        className={`relative w-full ${aspectClass} rounded-xl overflow-hidden border border-line-2 hover:border-terracotta transition-all duration-400 shadow-xl bg-black hover:-translate-y-2`}
       >
+        {/* Real poster frame sibling behind iframe (Defect 4) */}
+        <Image
+          src={`/posters/${work.id}.webp`}
+          alt={work.title}
+          fill
+          sizes="(max-width: 768px) 100vw, 380px"
+          className="object-cover pointer-events-none"
+        />
+
         <iframe
-          src={`https://player.vimeo.com/video/${work.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&quality=720p`}
+          src={`https://player.vimeo.com/video/${work.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
           title={work.title}
-          className="absolute inset-0 w-full h-full border-0 pointer-events-none"
+          onLoad={() => setIframeLoaded(true)}
+          className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 transition-opacity duration-500 ${
+            iframeLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
           allow="autoplay; fullscreen; picture-in-picture"
           loading="eager"
         />
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
+        <div className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
       </div>
       <div className="flex justify-between items-center font-mono text-[0.66rem] text-muted px-1">
         <span className="text-cream font-medium truncate pr-2 group-hover:text-terracotta transition-colors">
@@ -221,11 +234,11 @@ export function Hero() {
         {/* 3-Plane Parallax Hero Stack */}
         <div className="relative w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Column: Typography & Lead Copy */}
-          <div className="lg:col-span-7 z-20 flex flex-col">
+          <div className="lg:col-span-7 z-20 flex flex-col order-2 lg:order-1">
             {/* Display Mega Wordmark - Single Authoritative Title with In-Animation */}
             <h1
               ref={wordmarkRef}
-              className="font-display font-black text-mega text-cream uppercase tracking-tight leading-[0.88] mb-6 drop-shadow-md will-change-transform"
+              className="font-display font-black text-mega text-cream uppercase tracking-tight leading-[0.88] mb-6 drop-shadow-md"
             >
               <SplitText text="NEEL PATEL" by="char" />
             </h1>
@@ -234,7 +247,7 @@ export function Hero() {
             <Reveal variant="up" delay={0.1}>
               <div
                 ref={roleRef}
-                className="flex items-center gap-3 font-mono text-terracotta text-label uppercase tracking-[0.24em] font-semibold mb-6 will-change-transform"
+                className="flex items-center gap-3 font-mono text-terracotta text-label uppercase tracking-[0.24em] font-semibold mb-6"
               >
                 <SplitText text={`${HERO.rolePrefix} ${HERO.roleDot} ${HERO.roleSuffix}`} by="word" />
               </div>
@@ -244,7 +257,7 @@ export function Hero() {
             <Reveal variant="up" delay={0.15}>
               <p
                 ref={leadRef}
-                className="font-serif text-lead text-cream/90 leading-relaxed mb-8 max-w-xl will-change-transform"
+                className="font-serif text-lead text-cream/90 leading-relaxed mb-8 max-w-xl"
               >
                 I&apos;m a video editor specialised in{' '}
                 <span className="text-terracotta font-medium italic">colour grading</span> and{' '}
@@ -256,7 +269,7 @@ export function Hero() {
 
             {/* CTAs with In-Animation */}
             <Reveal variant="up" delay={0.2}>
-              <div ref={ctaRef} className="flex flex-wrap items-center gap-4 mb-8 will-change-transform">
+              <div ref={ctaRef} className="flex flex-wrap items-center gap-4 mb-8">
                 <Magnetic strength={0.15} cursor={HERO.ctaPrimary.cursor}>
                   <a
                     href={HERO.ctaPrimary.href}
@@ -295,11 +308,11 @@ export function Hero() {
           </div>
 
           {/* Right Column: Editorial Portrait Collage & Specs */}
-          <div className="lg:col-span-5 z-10 flex flex-col gap-6">
+          <div className="lg:col-span-5 z-10 flex flex-col gap-6 order-1 lg:order-2">
             <Reveal variant="scale" delay={0.18}>
               <figure
                 ref={portraitRef}
-                className="relative w-full aspect-[4/5] rounded-lg overflow-hidden border border-line-2 bg-ground-2 shadow-2xl group will-change-transform"
+                className="relative w-full aspect-[4/5] rounded-lg overflow-hidden border border-line-2 bg-ground-2 shadow-2xl group"
               >
                 <Image
                   src="/portrait/neel-collage.webp"

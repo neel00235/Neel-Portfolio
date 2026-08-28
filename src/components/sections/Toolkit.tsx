@@ -16,7 +16,6 @@ export function Toolkit() {
   const cardsRef = useRef<HTMLDivElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
   const highlightBandRef = useRef<HTMLDivElement>(null);
-  const invertedLayerRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
   const marqueeBandRef = useRef<HTMLDivElement>(null);
 
@@ -43,6 +42,7 @@ export function Toolkit() {
               trigger: headerRef.current,
               start: 'top 85%',
               toggleActions: 'play none none none',
+              once: true,
             },
           }
         );
@@ -63,49 +63,89 @@ export function Toolkit() {
             trigger: el,
             start: 'top 82%',
             toggleActions: 'play none none none',
+            once: true,
           },
         }
       );
 
-      // Set Piece 5: Toolkit Highlight Band Inversion (Tracks scroll and inverts rows via clip-path: inset() per R-32)
+      // Defect 10: Toolkit Highlight Band driven by row closest to viewport centre (no pin per rule 7)
       if (listContainerRef.current) {
+        const container = listContainerRef.current;
+        const total = SKILLS.length;
+
+        // Cache container geometry on setup and refresh; never read clientHeight in onUpdate (rule 4)
+        let containerPageTop = 0;
+        let containerH = 960;
+        let rowH = 64;
+        let prevActiveIdx = -1;
+
+        const updateMeasurements = () => {
+          if (!container) return;
+          const rect = container.getBoundingClientRect();
+          containerPageTop = rect.top + (window.scrollY || document.documentElement.scrollTop);
+          containerH = rect.height || 960;
+          rowH = containerH / total;
+        };
+
+        const syncHighlight = (currentScrollY: number) => {
+          const viewportCenter = currentScrollY + window.innerHeight / 2;
+          const relativeY = viewportCenter - containerPageTop;
+          const activeIdx = Math.max(0, Math.min(total - 1, Math.floor(relativeY / rowH)));
+
+          // Snap orange band to the active row
+          if (highlightBandRef.current) {
+            const bandY = activeIdx * rowH;
+            highlightBandRef.current.style.transform = `translate3d(0, ${bandY}px, 0)`;
+          }
+
+          // Bail early if activeIdx has not changed (rule 4 & defect 10)
+          if (activeIdx === prevActiveIdx) return;
+          prevActiveIdx = activeIdx;
+
+          // Single text-ground class toggle on active row + softened dimming floor (0.45)
+          rowRefs.current.forEach((row, i) => {
+            if (!row) return;
+            const isActive = i === activeIdx;
+            const dist = Math.abs(i - activeIdx);
+
+            // Opacity floor softened to ~0.45 so rows never read as blank
+            row.style.opacity = String(Math.max(0.45, 1 - dist * 0.15));
+
+            if (isActive) {
+              row.classList.add('text-ground', 'font-bold');
+              row.classList.remove('text-cream');
+              const num = row.querySelector('.row-num');
+              if (num) num.classList.add('text-ground');
+              const desc = row.querySelector('.row-desc');
+              if (desc) desc.classList.add('text-ground/90');
+              const badge = row.querySelector('.row-badge');
+              if (badge) badge.classList.add('text-ground', 'font-bold');
+            } else {
+              row.classList.remove('text-ground', 'font-bold');
+              row.classList.add('text-cream');
+              const num = row.querySelector('.row-num');
+              if (num) num.classList.remove('text-ground');
+              const desc = row.querySelector('.row-desc');
+              if (desc) desc.classList.remove('text-ground/90');
+              const badge = row.querySelector('.row-badge');
+              if (badge) badge.classList.remove('text-ground', 'font-bold');
+            }
+          });
+        };
+
+        updateMeasurements();
+        ScrollTrigger.addEventListener('refresh', updateMeasurements);
+
         ScrollTrigger.create({
-          trigger: listContainerRef.current,
-          start: 'top 65%',
-          end: 'bottom 45%',
-          scrub: true,
-          onUpdate: (self) => {
-            const container = listContainerRef.current;
-            if (!container) return;
-            const total = SKILLS.length;
-            const containerH = container.clientHeight;
-            const rowH = containerH / total;
-            const bandY = self.progress * (containerH - rowH);
-
-            if (highlightBandRef.current) {
-              highlightBandRef.current.style.transform = `translate3d(0, ${bandY}px, 0)`;
-            }
-
-            if (invertedLayerRef.current && containerH > 0) {
-              const topPct = (bandY / containerH) * 100;
-              const bottomPct = Math.max(0, 100 - ((bandY + rowH) / containerH) * 100);
-              const clipValue = `inset(${topPct.toFixed(2)}% 0px ${bottomPct.toFixed(2)}% 0px)`;
-              invertedLayerRef.current.style.clipPath = clipValue;
-              invertedLayerRef.current.style.setProperty('-webkit-clip-path', clipValue);
-            }
-
-            const activeIdx = Math.min(total - 1, Math.floor(self.progress * total));
-            rowRefs.current.forEach((row, i) => {
-              if (!row) return;
-              const dist = i - activeIdx;
-              if (dist > 0) {
-                row.style.opacity = String(Math.max(0.12, 1 - dist * 0.28));
-              } else {
-                row.style.opacity = '1';
-              }
-            });
-          },
+          trigger: container,
+          start: 'top bottom',
+          end: 'bottom top',
+          onUpdate: (self) => syncHighlight(self.scroll()),
+          onRefresh: (self) => syncHighlight(self.scroll()),
         });
+
+        // Initial sync
+        syncHighlight(window.scrollY || 0);
       }
 
       // 3. Set Piece 5: Marquee Band Scale (desktop)
@@ -124,7 +164,7 @@ export function Toolkit() {
           });
         });
 
-        // 4. Marquee scroll scrub velocity
+        // 4. Marquee scroll scrub velocity (scrub: true per rule 6 & defect 11)
         gsap.to(marqueeBandRef.current.querySelector('.animate-marquee'), {
           x: -120,
           ease: 'none',
@@ -132,7 +172,7 @@ export function Toolkit() {
             trigger: marqueeBandRef.current,
             start: 'top bottom',
             end: 'bottom top',
-            scrub: 0.5,
+            scrub: true,
           },
         });
       }
@@ -140,6 +180,12 @@ export function Toolkit() {
 
     return () => ctx.revert();
   }, []);
+
+  // Singled out cards for richer hover treatment: colour grading, after effects, video rescue
+  const isSpecialCard = (name: string) => {
+    const n = name.toLowerCase();
+    return n.includes('colour grading') || n.includes('after effects') || n.includes('video rescue');
+  };
 
   return (
     <section ref={sectionRef} id="skills" className="relative w-full py-24 border-b border-line overflow-hidden">
@@ -173,7 +219,7 @@ export function Toolkit() {
           </Reveal>
         </div>
 
-        {/* R-32 Moving Highlight Band Inversion List */}
+        {/* Highlight Band List (No clip-path, single text-ground toggle, hover states) */}
         <Reveal variant="up">
           <div
             ref={listContainerRef}
@@ -182,61 +228,31 @@ export function Toolkit() {
             {/* Moving Highlight Band: 1 Row Tall */}
             <div
               ref={highlightBandRef}
-              className="absolute inset-x-0 top-0 h-[64px] bg-terracotta pointer-events-none z-10 will-change-transform shadow-lg"
+              className="absolute inset-x-0 top-0 h-[64px] bg-terracotta pointer-events-none z-10 shadow-lg"
             />
 
-            {/* Base Layer: Cream text on Ground */}
-            <div className="relative z-0 divide-y divide-line-2">
+            {/* Single List Layer: Text color toggles to text-ground on active row */}
+            <div className="relative z-20 divide-y divide-line-2">
               {SKILLS.map((skill, index) => (
                 <div
                   key={skill.name}
                   ref={(el) => {
                     rowRefs.current[index] = el;
                   }}
-                  className="skill-row h-[64px] px-6 sm:px-8 flex items-center justify-between gap-4 transition-opacity duration-200"
+                  className="skill-row h-[64px] px-6 sm:px-8 flex items-center justify-between gap-4 text-cream transition-[opacity,color] duration-200 cursor-pointer group select-none"
                 >
-                  <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-                    <span className="font-mono text-terracotta text-sm font-bold w-6">
+                  <div className="flex items-center gap-4 sm:gap-6 min-w-0 group-hover:translate-x-1.5 transition-transform duration-200">
+                    <span className="row-num font-mono text-terracotta text-sm font-bold w-6 group-hover:text-terracotta transition-colors duration-200">
                       {(index + 1).toString().padStart(2, '0')}
                     </span>
-                    <span className="font-display font-bold text-base sm:text-lg text-cream truncate">
+                    <span className="row-title font-display font-bold text-base sm:text-lg truncate">
                       {skill.name}
                     </span>
                   </div>
-                  <span className="font-sans text-xs sm:text-sm text-cream/70 truncate hidden md:inline max-w-md">
+                  <span className="row-desc font-sans text-xs sm:text-sm text-cream/70 truncate hidden md:inline max-w-md group-hover:text-cream transition-colors duration-200">
                     {skill.desc}
                   </span>
-                  <span className="font-mono text-[0.66rem] tracking-wider text-muted uppercase shrink-0">
-                    DISCIPLINE
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Inverted Layer: Dark text revealed through clip-path: inset() per R-32 */}
-            <div
-              ref={invertedLayerRef}
-              aria-hidden="true"
-              className="toolkit-inverted-layer absolute inset-0 z-20 pointer-events-none divide-y divide-ground/20 will-change-[clip-path]"
-              style={{ clipPath: 'inset(0% 0 93.33% 0)' }}
-            >
-              {SKILLS.map((skill, index) => (
-                <div
-                  key={skill.name}
-                  className="h-[64px] px-6 sm:px-8 flex items-center justify-between gap-4 text-ground font-semibold select-none"
-                >
-                  <div className="flex items-center gap-4 sm:gap-6 min-w-0">
-                    <span className="font-mono text-ground font-black text-sm w-6">
-                      {(index + 1).toString().padStart(2, '0')}
-                    </span>
-                    <span className="font-display font-black text-base sm:text-lg text-ground truncate">
-                      {skill.name}
-                    </span>
-                  </div>
-                  <span className="font-sans text-xs sm:text-sm text-ground/95 truncate hidden md:inline max-w-md font-medium">
-                    {skill.desc}
-                  </span>
-                  <span className="font-mono text-[0.66rem] tracking-wider text-ground uppercase shrink-0 font-bold">
+                  <span className="row-badge font-mono text-[0.66rem] tracking-wider text-muted uppercase shrink-0">
                     DISCIPLINE
                   </span>
                 </div>
@@ -245,28 +261,37 @@ export function Toolkit() {
           </div>
         </Reveal>
 
-        {/* 15 Skills Grid with Staggered In-Animations */}
+        {/* 15 Skills Grid with Static Shadow & Explicit Transitions */}
         <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
-          {SKILLS.map((skill, index) => (
-            <Reveal key={skill.name} variant="up" delay={0.03 * (index % 6)}>
-              <div
-                className="skill-card p-6 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta/60 hover:-translate-y-2 hover:shadow-[0_16px_36px_-6px_rgba(246,124,41,0.18)] transition-all duration-300 flex flex-col gap-3 group will-change-transform h-full"
-              >
-                <div className="flex items-center justify-between font-mono text-label text-muted">
-                  <span className="text-terracotta font-bold text-sm">
-                    {(index + 1).toString().padStart(2, '0')}
-                  </span>
-                  <span className="text-[0.6rem] tracking-widest uppercase text-muted/80">DISCIPLINE</span>
+          {SKILLS.map((skill, index) => {
+            const featured = isSpecialCard(skill.name);
+            return (
+              <Reveal key={skill.name} variant="up" delay={0.03 * (index % 6)}>
+                <div
+                  className={`skill-card p-6 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta/60 hover:-translate-y-2 shadow-lg transition-[transform,border-color] duration-300 flex flex-col gap-3 group h-full ${
+                    featured ? 'hover:border-terracotta' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between font-mono text-label text-muted">
+                    <span
+                      className={`font-bold text-sm text-terracotta inline-block transition-transform duration-200 ${
+                        featured ? 'group-hover:scale-110 group-hover:rotate-6' : 'group-hover:scale-105'
+                      }`}
+                    >
+                      {(index + 1).toString().padStart(2, '0')}
+                    </span>
+                    <span className="text-[0.6rem] tracking-widest uppercase text-muted/80">DISCIPLINE</span>
+                  </div>
+                  <h3 className="font-display font-bold text-lg text-cream group-hover:text-terracotta transition-colors">
+                    {skill.name}
+                  </h3>
+                  <p className="font-sans text-sm text-cream/70 leading-relaxed">
+                    {skill.desc}
+                  </p>
                 </div>
-                <h3 className="font-display font-bold text-lg text-cream group-hover:text-terracotta transition-colors">
-                  {skill.name}
-                </h3>
-                <p className="font-sans text-sm text-cream/70 leading-relaxed">
-                  {skill.desc}
-                </p>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            );
+          })}
         </div>
       </div>
 

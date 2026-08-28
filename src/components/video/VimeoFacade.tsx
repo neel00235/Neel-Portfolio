@@ -83,7 +83,7 @@ export function VimeoFacade({
   }&muted=${soundEnabled ? 0 : 1}&loop=1&background=0&controls=0&dnt=1&quality=1080p&app_id=122963`;
 
   return (
-    <div className={`relative w-full h-full overflow-hidden bg-ground-2 ${className}`}>
+    <div className={`relative w-full h-full overflow-hidden bg-black ${className}`}>
       <iframe
         ref={iframeRef}
         src={embedUrl}

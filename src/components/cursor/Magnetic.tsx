@@ -61,7 +61,7 @@ export function Magnetic({
   return (
     <div
       ref={ref}
-      className={`inline-block will-change-transform ${className}`}
+      className={`inline-block ${className}`}
       onPointerEnter={handlePointerEnter}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
