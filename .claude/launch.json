@@ -13,6 +13,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["--yes", "serve", "-l", "5173", "."],
       "port": 5173
+    },
+    {
+      "name": "portfolio-prod",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5180", "--directory", "out"],
+      "port": 5180
     }
   ]
 }

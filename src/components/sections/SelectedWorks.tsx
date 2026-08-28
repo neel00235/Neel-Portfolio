@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Maximize2, Play, X } from 'lucide-react';
+import { ArrowRight, Maximize2 } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { WORKS_COPY } from '@/data/content';
@@ -49,7 +49,14 @@ export function SelectedWorks() {
     (w) => !['absolute-cinema', 'motion-graphics', 'event-gfx'].includes(w.discipline)
   );
 
-  const railWorks = [...cinemaWorks, ...motionWorks, ...gfxWorks, ...otherWorks].slice(0, 12);
+  // The home rail is a teaser, not the archive: capping it keeps the number of
+  // VideoFrames (poster + hover iframe each) on the landing page bounded. The
+  // full 52 are one click away via the rail's end card and the header link.
+  const RAIL_LIMIT = 12;
+  const railWorks = [...cinemaWorks, ...motionWorks, ...gfxWorks, ...otherWorks].slice(
+    0,
+    RAIL_LIMIT
+  );
 
   useEffect(() => {
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');

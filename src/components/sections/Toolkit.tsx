@@ -27,6 +27,7 @@ export function Toolkit() {
     if (prefersReducedMotion) return;
 
     const cards = el.querySelectorAll('.skill-card');
+    let removeRefreshListener: (() => void) | null = null;
     const ctx = gsap.context(() => {
       // 1. Header trigger
       if (headerRef.current) {
@@ -134,7 +135,11 @@ export function Toolkit() {
         };
 
         updateMeasurements();
+        // ScrollTrigger's global listeners are not owned by gsap.context, so
+        // hand the remover up to the effect cleanup rather than leaking it.
         ScrollTrigger.addEventListener('refresh', updateMeasurements);
+        removeRefreshListener = () =>
+          ScrollTrigger.removeEventListener('refresh', updateMeasurements);
 
         ScrollTrigger.create({
           trigger: container,
@@ -178,7 +183,10 @@ export function Toolkit() {
       }
     }, sectionRef);
 
-    return () => ctx.revert();
+    return () => {
+      removeRefreshListener?.();
+      ctx.revert();
+    };
   }, []);
 
   // Singled out cards for richer hover treatment: colour grading, after effects, video rescue
