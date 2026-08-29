@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { TOOLKIT_COPY } from '@/data/content';
@@ -13,20 +13,22 @@ gsap.registerPlugin(ScrollTrigger);
 export function Toolkit() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<HTMLDivElement>(null);
   const listContainerRef = useRef<HTMLDivElement>(null);
   const highlightBandRef = useRef<HTMLDivElement>(null);
   const rowRefs = useRef<(HTMLDivElement | null)[]>([]);
   const marqueeBandRef = useRef<HTMLDivElement>(null);
 
+  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  const updateMeasurementsRef = useRef<() => void>(() => {});
+  const syncHighlightRef = useRef<(sy: number) => void>(() => {});
+
   useEffect(() => {
-    const el = cardsRef.current;
-    if (!el) return;
+    const isReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    setPrefersReducedMotion(isReduced);
+    if (isReduced) return;
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
-
-    const cards = el.querySelectorAll('.skill-card');
     let removeRefreshListener: (() => void) | null = null;
     const ctx = gsap.context(() => {
       // 1. Header trigger
@@ -49,55 +51,63 @@ export function Toolkit() {
         );
       }
 
-      // 2. Skill cards stagger trigger
-      gsap.fromTo(
-        cards,
-        { opacity: 0, y: 36, scale: 0.96 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.55,
-          stagger: 0.04,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 82%',
-            toggleActions: 'play none none none',
-            once: true,
-          },
-        }
-      );
-
-      // Defect 10: Toolkit Highlight Band driven by row closest to viewport centre (no pin per rule 7)
+      // 2. Item 8: Toolkit Highlight Band locked to viewport center with cached per-row geometry
       if (listContainerRef.current) {
         const container = listContainerRef.current;
-        const total = SKILLS.length;
 
-        // Cache container geometry on setup and refresh; never read clientHeight in onUpdate (rule 4)
+        interface CachedRow {
+          offsetTop: number;
+          offsetHeight: number;
+          centerTop: number;
+        }
+
         let containerPageTop = 0;
-        let containerH = 960;
-        let rowH = 64;
+        let cachedRows: CachedRow[] = [];
         let prevActiveIdx = -1;
 
         const updateMeasurements = () => {
-          if (!container) return;
-          const rect = container.getBoundingClientRect();
+          if (!listContainerRef.current) return;
+          const c = listContainerRef.current;
+          const rect = c.getBoundingClientRect();
           containerPageTop = rect.top + (window.scrollY || document.documentElement.scrollTop);
-          containerH = rect.height || 960;
-          rowH = containerH / total;
+
+          cachedRows = [];
+          rowRefs.current.forEach((row) => {
+            if (row) {
+              cachedRows.push({
+                offsetTop: row.offsetTop,
+                offsetHeight: row.offsetHeight,
+                centerTop: row.offsetTop + row.offsetHeight / 2,
+              });
+            }
+          });
         };
 
         const syncHighlight = (currentScrollY: number) => {
+          if (cachedRows.length === 0 || !highlightBandRef.current) return;
           const viewportCenter = currentScrollY + window.innerHeight / 2;
           const relativeY = viewportCenter - containerPageTop;
-          const activeIdx = Math.max(0, Math.min(total - 1, Math.floor(relativeY / rowH)));
 
-          // Snap orange band to the active row
-          if (highlightBandRef.current) {
-            const bandY = activeIdx * rowH;
-            highlightBandRef.current.style.transform = `translate3d(0, ${bandY}px, 0)`;
+          // Find row closest to the viewport center line
+          let activeIdx = 0;
+          let minDiff = Infinity;
+          for (let i = 0; i < cachedRows.length; i++) {
+            const diff = Math.abs(cachedRows[i].centerTop - relativeY);
+            if (diff < minDiff) {
+              minDiff = diff;
+              activeIdx = i;
+            }
           }
+
+          // Snap the band onto the active row's own box so the dark text always
+          // sits fully on orange. Centring it on the viewport instead leaves the
+          // band straddling two rows.
+          const targetRow = cachedRows[activeIdx];
+          const bandH = targetRow ? targetRow.offsetHeight : 64;
+          const bandY = targetRow ? targetRow.offsetTop : 0;
+
+          highlightBandRef.current.style.height = `${bandH}px`;
+          highlightBandRef.current.style.transform = `translate3d(0, ${bandY}px, 0)`;
 
           // Bail early if activeIdx has not changed (rule 4 & defect 10)
           if (activeIdx === prevActiveIdx) return;
@@ -115,34 +125,50 @@ export function Toolkit() {
             if (isActive) {
               row.classList.add('text-ground', 'font-bold');
               row.classList.remove('text-cream');
-              const num = row.querySelector('.row-num');
-              if (num) num.classList.add('text-ground');
+              // The number keeps `text-terracotta` (and a terracotta group-hover)
+              // and the badge keeps `text-muted`, so adding `text-ground` loses the
+              // cascade and leaves both illegible on the orange band. An inline
+              // colour outranks every utility class, hover included.
+              const num = row.querySelector<HTMLElement>('.row-num');
+              if (num) num.style.color = '#13100c';
               const desc = row.querySelector('.row-desc');
               if (desc) desc.classList.add('text-ground/90');
-              const badge = row.querySelector('.row-badge');
-              if (badge) badge.classList.add('text-ground', 'font-bold');
+              const fullDesc = row.querySelector('.row-desc-full');
+              if (fullDesc) fullDesc.classList.add('text-ground/90');
+              const badge = row.querySelector<HTMLElement>('.row-badge');
+              if (badge) {
+                badge.style.color = 'rgba(19, 16, 12, 0.78)';
+                badge.classList.add('font-bold');
+              }
             } else {
               row.classList.remove('text-ground', 'font-bold');
               row.classList.add('text-cream');
-              const num = row.querySelector('.row-num');
-              if (num) num.classList.remove('text-ground');
+              const num = row.querySelector<HTMLElement>('.row-num');
+              if (num) num.style.removeProperty('color');
               const desc = row.querySelector('.row-desc');
               if (desc) desc.classList.remove('text-ground/90');
-              const badge = row.querySelector('.row-badge');
-              if (badge) badge.classList.remove('text-ground', 'font-bold');
+              const fullDesc = row.querySelector('.row-desc-full');
+              if (fullDesc) fullDesc.classList.remove('text-ground/90');
+              const badge = row.querySelector<HTMLElement>('.row-badge');
+              if (badge) {
+                badge.style.removeProperty('color');
+                badge.classList.remove('font-bold');
+              }
             }
           });
         };
 
+        updateMeasurementsRef.current = updateMeasurements;
+        syncHighlightRef.current = syncHighlight;
+
         updateMeasurements();
-        // ScrollTrigger's global listeners are not owned by gsap.context, so
-        // hand the remover up to the effect cleanup rather than leaking it.
+        // ScrollTrigger's global listeners are not owned by gsap.context (rule 11)
         ScrollTrigger.addEventListener('refresh', updateMeasurements);
         removeRefreshListener = () =>
           ScrollTrigger.removeEventListener('refresh', updateMeasurements);
 
         ScrollTrigger.create({
-          trigger: container,
+          trigger: sectionRef.current || container,
           start: 'top bottom',
           end: 'bottom top',
           onUpdate: (self) => syncHighlight(self.scroll()),
@@ -169,7 +195,7 @@ export function Toolkit() {
           });
         });
 
-        // 4. Marquee scroll scrub velocity (scrub: true per rule 6 & defect 11)
+        // 4. Marquee scroll scrub velocity (scrub: true per rule 6)
         gsap.to(marqueeBandRef.current.querySelector('.animate-marquee'), {
           x: -120,
           ease: 'none',
@@ -189,11 +215,11 @@ export function Toolkit() {
     };
   }, []);
 
-  // Singled out cards for richer hover treatment: colour grading, after effects, video rescue
-  const isSpecialCard = (name: string) => {
-    const n = name.toLowerCase();
-    return n.includes('colour grading') || n.includes('after effects') || n.includes('video rescue');
-  };
+  // When a row expands or collapses, re-run measurements and resync highlight
+  useEffect(() => {
+    updateMeasurementsRef.current?.();
+    syncHighlightRef.current?.(window.scrollY || 0);
+  }, [expandedIdx]);
 
   return (
     <section ref={sectionRef} id="skills" className="relative w-full py-24 border-b border-line overflow-hidden">
@@ -227,13 +253,12 @@ export function Toolkit() {
           </Reveal>
         </div>
 
-        {/* Highlight Band List (No clip-path, single text-ground toggle, hover states) */}
-        <Reveal variant="up">
-          <div
-            ref={listContainerRef}
-            className="relative w-full my-8 border border-line-2 rounded-2xl overflow-hidden bg-ground-2 shadow-2xl"
-          >
-            {/* Moving Highlight Band: 1 Row Tall */}
+        {/* Highlight Band List (Consolidated Authoritative Skills Presentation) */}
+        <div
+          ref={listContainerRef}
+          className="relative w-full my-8 border border-line-2 rounded-2xl overflow-hidden bg-ground-2 shadow-2xl"
+        >
+            {/* Moving Highlight Band: Heights match active row, center-locked to viewport */}
             <div
               ref={highlightBandRef}
               className="absolute inset-x-0 top-0 h-[64px] bg-terracotta pointer-events-none z-10 shadow-lg"
@@ -241,67 +266,62 @@ export function Toolkit() {
 
             {/* Single List Layer: Text color toggles to text-ground on active row */}
             <div className="relative z-20 divide-y divide-line-2">
-              {SKILLS.map((skill, index) => (
-                <div
-                  key={skill.name}
-                  ref={(el) => {
-                    rowRefs.current[index] = el;
-                  }}
-                  className="skill-row h-[64px] px-6 sm:px-8 flex items-center justify-between gap-4 text-cream transition-[opacity,color] duration-200 cursor-pointer group select-none"
-                >
-                  <div className="flex items-center gap-4 sm:gap-6 min-w-0 group-hover:translate-x-1.5 transition-transform duration-200">
-                    <span className="row-num font-mono text-terracotta text-sm font-bold w-6 group-hover:text-terracotta transition-colors duration-200">
-                      {(index + 1).toString().padStart(2, '0')}
-                    </span>
-                    <span className="row-title font-display font-bold text-base sm:text-lg truncate">
-                      {skill.name}
-                    </span>
+              {SKILLS.map((skill, index) => {
+                const isExpanded = expandedIdx === index;
+                return (
+                  <div
+                    key={skill.name}
+                    ref={(el) => {
+                      rowRefs.current[index] = el;
+                    }}
+                    onMouseEnter={() => {
+                      if (!prefersReducedMotion) setExpandedIdx(index);
+                    }}
+                    onMouseLeave={() => {
+                      if (!prefersReducedMotion) setExpandedIdx(null);
+                    }}
+                    onFocus={() => setExpandedIdx(index)}
+                    onBlur={() => setExpandedIdx(null)}
+                    tabIndex={0}
+                    role="button"
+                    aria-expanded={isExpanded}
+                    className="skill-row px-6 sm:px-8 py-4 flex flex-col justify-center text-cream transition-[opacity,color] duration-200 cursor-pointer group select-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-terracotta"
+                  >
+                    <div className="flex items-center justify-between gap-4 w-full">
+                      <div className="flex items-center gap-4 sm:gap-6 min-w-0 group-hover:translate-x-1.5 transition-transform duration-200">
+                        <span className="row-num font-mono text-terracotta text-sm font-bold w-6 group-hover:text-terracotta transition-colors duration-200">
+                          {(index + 1).toString().padStart(2, '0')}
+                        </span>
+                        <span className="row-title font-display font-bold text-base sm:text-lg truncate">
+                          {skill.name}
+                        </span>
+                      </div>
+                      {!isExpanded && (
+                        <span className="row-desc font-sans text-xs sm:text-sm text-cream/70 truncate hidden md:inline max-w-md group-hover:text-cream transition-colors duration-200">
+                          {skill.desc}
+                        </span>
+                      )}
+                      <span className="row-badge font-mono text-[0.66rem] tracking-wider text-muted uppercase shrink-0">
+                        DISCIPLINE
+                      </span>
+                    </div>
+
+                    {/* Inner detail panel: revealed inside an overflow: hidden wrapper */}
+                    {isExpanded && (
+                      <div className="overflow-hidden pt-3">
+                        <div className="transition-[transform,opacity] duration-200 ease-out font-sans text-xs sm:text-sm text-cream/85 max-w-3xl leading-relaxed">
+                          <p className="row-desc-full font-sans text-xs sm:text-sm leading-relaxed">
+                            {skill.desc}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <span className="row-desc font-sans text-xs sm:text-sm text-cream/70 truncate hidden md:inline max-w-md group-hover:text-cream transition-colors duration-200">
-                    {skill.desc}
-                  </span>
-                  <span className="row-badge font-mono text-[0.66rem] tracking-wider text-muted uppercase shrink-0">
-                    DISCIPLINE
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
-        </Reveal>
-
-        {/* 15 Skills Grid with Static Shadow & Explicit Transitions */}
-        <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
-          {SKILLS.map((skill, index) => {
-            const featured = isSpecialCard(skill.name);
-            return (
-              <Reveal key={skill.name} variant="up" delay={0.03 * (index % 6)}>
-                <div
-                  className={`skill-card p-6 rounded-xl bg-ground-2 border border-line-2 hover:border-terracotta/60 hover:-translate-y-2 shadow-lg transition-[transform,border-color] duration-300 flex flex-col gap-3 group h-full ${
-                    featured ? 'hover:border-terracotta' : ''
-                  }`}
-                >
-                  <div className="flex items-center justify-between font-mono text-label text-muted">
-                    <span
-                      className={`font-bold text-sm text-terracotta inline-block transition-transform duration-200 ${
-                        featured ? 'group-hover:scale-110 group-hover:rotate-6' : 'group-hover:scale-105'
-                      }`}
-                    >
-                      {(index + 1).toString().padStart(2, '0')}
-                    </span>
-                    <span className="text-[0.6rem] tracking-widest uppercase text-muted/80">DISCIPLINE</span>
-                  </div>
-                  <h3 className="font-display font-bold text-lg text-cream group-hover:text-terracotta transition-colors">
-                    {skill.name}
-                  </h3>
-                  <p className="font-sans text-sm text-cream/70 leading-relaxed">
-                    {skill.desc}
-                  </p>
-                </div>
-              </Reveal>
-            );
-          })}
         </div>
-      </div>
 
       {/* Set Piece 5: Skills Marquee Band Inversion */}
       <Reveal variant="up">

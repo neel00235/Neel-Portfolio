@@ -43,17 +43,20 @@ export function Gallery() {
       ? UNIQUE_WORKS
       : UNIQUE_WORKS.filter((w) => w.kicker === activeKicker);
 
-  // Prioritize Absolute Cinema first, Motion Graphics second per R-20
-  const getDisciplinePriority = (d: string) => {
-    if (d === 'absolute-cinema') return 1;
-    if (d === 'motion-graphics') return 2;
-    return 3;
+  // Prioritize Rhythm first, Long form second per Item 7c
+  const getKickerPriority = (kicker?: string) => {
+    if (kicker === 'Rhythm') return 1;
+    if (kicker === 'Long form') return 2;
+    if (kicker === 'Client work') return 3;
+    if (kicker === 'Craft') return 4;
+    if (kicker === 'Study') return 5;
+    return 6;
   };
 
   const displayWorks = [...filteredWorks]
     .sort((a, b) => {
-      const pA = getDisciplinePriority(a.discipline);
-      const pB = getDisciplinePriority(b.discipline);
+      const pA = getKickerPriority(a.kicker);
+      const pB = getKickerPriority(b.kicker);
       if (pA !== pB) return pA - pB;
       return 0;
     })
@@ -123,30 +126,7 @@ export function Gallery() {
         );
       }
 
-      // 3. Grid velocity skew (single writer via quickTo per Defect 8 & 2d)
-      if (gridRef.current) {
-        const setSkew = gsap.quickTo(gridRef.current, 'skewY', {
-          duration: 0.4,
-          ease: 'power3.out',
-        });
-
-        let lastSkew = 0;
-        ScrollTrigger.create({
-          trigger: gridRef.current,
-          start: 'top bottom',
-          end: 'bottom top',
-          onUpdate: (self) => {
-            const rawVel = self.getVelocity();
-            const skew = gsap.utils.clamp(-6, 6, rawVel / 600);
-            if (Math.abs(skew - lastSkew) > 0.05 || (skew === 0 && lastSkew !== 0)) {
-              lastSkew = skew;
-              setSkew(skew);
-            }
-          },
-        });
-      }
-
-      // 4. Archive band trigger
+      // 3. Archive band trigger
       if (archiveBandRef.current) {
         gsap.fromTo(
           archiveBandRef.current,
@@ -249,13 +229,10 @@ export function Gallery() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
             {displayWorks.map((work, idx) => (
             <Reveal key={work.id} variant="up" delay={0.04 * (idx % 6)}>
-              <div
-                className="gallery-tile flex flex-col gap-3 group"
-                style={{ contentVisibility: 'auto', containIntrinsicSize: '380px' }}
-              >
+              <div className="gallery-tile flex flex-col gap-3 group">
                 <div
                   onClick={() => handleOpenModal(work)}
-                  className="cursor-pointer relative rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-all duration-300 shadow-lg hover:-translate-y-1.5"
+                  className="cursor-pointer relative rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-[transform,border-color,box-shadow] duration-300 shadow-lg hover:-translate-y-1.5"
                   data-cursor="Zoom"
                 >
                   <VideoFrame

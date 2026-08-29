@@ -77,7 +77,7 @@ export default function RootLayout({
         <ToneBridge />
         {/* Background Tone Shader, Animated Square Grid & Floating Gradient Textures */}
         <ToneFieldLazy />
-        <div className="fixed inset-0 pointer-events-none grid-overlay z-0 opacity-70" aria-hidden="true" />
+        <div className="fixed inset-0 pointer-events-none grid-overlay z-0" aria-hidden="true" />
         <div className="fixed -top-40 -left-40 w-[600px] h-[600px] pointer-events-none gradient-orb-1 z-0 blur-3xl" aria-hidden="true" />
         {/* Procedural Film Grain per R-33 */}
         <svg

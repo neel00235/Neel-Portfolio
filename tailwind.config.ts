@@ -59,6 +59,7 @@ export default {
       animation: {
         fadeIn:   'fadeIn 420ms cubic-bezier(.16,1,.3,1)',
         marquee:  'marquee 34s linear infinite',
+        'marquee-slow': 'marquee 75s linear infinite',
         spinSlow: 'spinSlow 18s linear infinite',
         grain:    'grain 8s steps(6) infinite',
         scanline: 'scanline 240ms linear 1',

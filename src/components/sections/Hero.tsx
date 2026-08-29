@@ -16,12 +16,13 @@ import { SplitText } from '@/components/motion/SplitText';
 function AutoplayReel({
   work,
   badge,
+  size = 'flank',
 }: {
   work: Work;
   badge?: string;
+  size?: 'lead' | 'flank';
 }) {
-  const [iframeLoaded, setIframeLoaded] = useState(false);
-  const isVertical = work.aspect === '9:16';
+  const isLead = size === 'lead';
   const aspectClass =
     work.aspect === '9:16'
       ? 'aspect-[9/16]'
@@ -31,46 +32,46 @@ function AutoplayReel({
       ? 'aspect-square'
       : 'aspect-video';
 
-  const maxWClass =
-    work.aspect === '9:16'
-      ? 'max-w-[210px]'
-      : work.aspect === '4:3'
-      ? 'max-w-[300px]'
-      : 'max-w-[380px]';
+  const sizeClass = isLead
+    ? 'w-full lg:w-[560px] max-w-[580px]'
+    : 'w-full lg:w-[440px] max-w-[460px]';
 
   const badgeText = badge || `${work.discipline.toUpperCase()} · ${work.aspect}`;
 
   return (
-    <div className={`flex flex-col gap-2 group ${maxWClass} w-full mx-auto`}>
+    <div className={`flex flex-col gap-2.5 group ${sizeClass} mx-auto`}>
       <div
-        className={`relative w-full ${aspectClass} rounded-xl overflow-hidden border border-line-2 hover:border-terracotta transition-all duration-400 shadow-xl bg-black hover:-translate-y-2`}
+        className={`relative w-full ${aspectClass} rounded-xl overflow-hidden border border-line-2 hover:border-terracotta transition-[transform,border-color,box-shadow] duration-400 shadow-xl bg-black hover:-translate-y-2`}
       >
         {/* Real poster frame sibling behind iframe (Defect 4) */}
         <Image
           src={`/posters/${work.id}.webp`}
           alt={work.title}
           fill
-          sizes="(max-width: 768px) 100vw, 380px"
+          sizes={isLead ? '(max-width: 768px) 100vw, 580px' : '(max-width: 768px) 100vw, 460px'}
           className="object-cover pointer-events-none"
         />
 
         <iframe
           src={`https://player.vimeo.com/video/${work.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
           title={work.title}
-          onLoad={() => setIframeLoaded(true)}
-          className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 transition-opacity duration-500 ${
-            iframeLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
+          className="absolute inset-0 w-full h-full border-0 pointer-events-none z-10 opacity-100"
           allow="autoplay; fullscreen; picture-in-picture"
           loading="eager"
         />
         <div className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
       </div>
-      <div className="flex justify-between items-center font-mono text-[0.66rem] text-muted px-1">
-        <span className="text-cream font-medium truncate pr-2 group-hover:text-terracotta transition-colors">
+
+      {/* Scaled caption row with truncate and min-w-0 */}
+      <div
+        className={`flex justify-between items-center font-mono ${
+          isLead ? 'text-[0.78rem] sm:text-[0.82rem]' : 'text-[0.72rem] sm:text-[0.75rem]'
+        } text-muted px-1 min-w-0`}
+      >
+        <span className="text-cream font-medium truncate min-w-0 pr-2 group-hover:text-terracotta transition-colors">
           {work.title}
         </span>
-        <span className="text-terracotta font-semibold whitespace-nowrap">{badgeText}</span>
+        <span className="text-terracotta font-semibold whitespace-nowrap shrink-0">{badgeText}</span>
       </div>
     </div>
   );
@@ -235,21 +236,32 @@ export function Hero() {
         <div className="relative w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Column: Typography & Lead Copy */}
           <div className="lg:col-span-7 z-20 flex flex-col order-2 lg:order-1">
-            {/* Display Mega Wordmark - Single Authoritative Title with In-Animation */}
+            {/* Display Mega Wordmark - Single Authoritative Title with In-Animation & Contained Line Box */}
             <h1
               ref={wordmarkRef}
-              className="font-display font-black text-mega text-cream uppercase tracking-tight leading-[0.88] mb-6 drop-shadow-md"
+              className="font-display font-black text-mega text-cream uppercase tracking-tight leading-[0.98] pb-6 mb-8 drop-shadow-md"
             >
               <SplitText text="NEEL PATEL" by="char" />
             </h1>
 
-            {/* Role Header with In-Animation */}
+            {/* Role Header with In-Animation & >=32px Clear Space */}
             <Reveal variant="up" delay={0.1}>
               <div
                 ref={roleRef}
                 className="flex items-center gap-3 font-mono text-terracotta text-label uppercase tracking-[0.24em] font-semibold mb-6"
               >
                 <SplitText text={`${HERO.rolePrefix} ${HERO.roleDot} ${HERO.roleSuffix}`} by="word" />
+              </div>
+            </Reveal>
+
+            {/* Cursive Accent Line per Item 2b (Ephesis font-script) */}
+            <Reveal variant="up" delay={0.12}>
+              <div className="flex items-center gap-3 mb-6">
+                <span className="h-[1px] w-8 bg-terracotta/40" />
+                <span className="inline-block font-script text-terracotta lowercase text-[1.65em] font-normal leading-[0.72] -my-[0.18em] tracking-wide select-none">
+                  crafting rhythm from pure motion
+                </span>
+                <span className="h-[1px] flex-1 max-w-[120px] bg-terracotta/40" />
               </div>
             </Reveal>
 
@@ -263,7 +275,9 @@ export function Hero() {
                 <span className="text-terracotta font-medium italic">colour grading</span> and{' '}
                 <span className="text-kraft font-medium italic">story-driven edits</span> — turning raw
                 footage into visuals that don&apos;t just get watched, they get{' '}
-                <span className="font-script text-2xl text-cream">felt</span>.
+                <span className="inline-block font-script text-[1.4em] font-normal leading-[0.72] -my-[0.18em] text-cream">
+                  felt
+                </span>.
               </p>
             </Reveal>
 
@@ -273,7 +287,7 @@ export function Hero() {
                 <Magnetic strength={0.15} cursor={HERO.ctaPrimary.cursor}>
                   <a
                     href={HERO.ctaPrimary.href}
-                    className="flex items-center gap-2 px-6 py-3 rounded-full bg-terracotta hover:bg-[#ff8838] text-ground font-mono text-label font-bold tracking-widest uppercase shadow-lg transition-all duration-200"
+                    className="flex items-center gap-2 px-6 py-3 rounded-full bg-terracotta hover:bg-[#ff8838] text-ground font-mono text-label font-bold tracking-widest uppercase shadow-lg transition-[transform,background-color,box-shadow] duration-200"
                   >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     <span>{HERO.ctaPrimary.text}</span>
@@ -283,7 +297,7 @@ export function Hero() {
                 <Magnetic strength={0.15} cursor={HERO.ctaSecondary.cursor}>
                   <a
                     href={HERO.ctaSecondary.href}
-                    className="flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-cream text-cream font-mono text-label tracking-widest uppercase transition-all duration-200"
+                    className="flex items-center gap-2 px-6 py-3 rounded-full border border-line hover:border-cream text-cream font-mono text-label tracking-widest uppercase transition-[transform,border-color,color] duration-200"
                   >
                     <span>{HERO.ctaSecondary.text}</span>
                     <ArrowUpRight className="w-4 h-4 text-muted" />
@@ -292,8 +306,38 @@ export function Hero() {
               </div>
             </Reveal>
 
+            {/* Editorial Metric Strip per Item 2b */}
+            <Reveal variant="up" delay={0.24}>
+              <div className="grid grid-cols-3 gap-6 py-5 border-t border-line-2 mb-6">
+                <div>
+                  <span className="block font-display font-black text-2xl md:text-3xl text-cream tracking-tight font-variation-wonk">
+                    52+
+                  </span>
+                  <span className="font-mono text-[0.66rem] uppercase tracking-wider text-muted">
+                    Films &amp; Cuts
+                  </span>
+                </div>
+                <div>
+                  <span className="block font-display font-black text-2xl md:text-3xl text-cream tracking-tight font-variation-wonk">
+                    16
+                  </span>
+                  <span className="font-mono text-[0.66rem] uppercase tracking-wider text-muted">
+                    Disciplines
+                  </span>
+                </div>
+                <div>
+                  <span className="block font-display font-black text-2xl md:text-3xl text-terracotta tracking-tight font-variation-wonk">
+                    4K
+                  </span>
+                  <span className="font-mono text-[0.66rem] uppercase tracking-wider text-muted">
+                    Master Color
+                  </span>
+                </div>
+              </div>
+            </Reveal>
+
             {/* Tags (Tightened vertical spacing) */}
-            <Reveal variant="up" delay={0.25}>
+            <Reveal variant="up" delay={0.28}>
               <div className="flex flex-wrap gap-2 pt-4 border-t border-line-2">
                 {HERO.tags.map((tag) => (
                   <span
@@ -391,33 +435,36 @@ export function Hero() {
               <span className="hidden sm:inline text-xs">LIVE PREVIEW</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 items-end justify-center">
-              {/* 1 Masking Edit: 4:3 Aspect Reel */}
-              {masking && (
-                <Reveal variant="up" delay={0.1}>
-                  <AutoplayReel
-                    work={masking}
-                    badge="MASKING · 4:3"
-                  />
-                </Reveal>
-              )}
-
-              {/* Motion Edit 1: 16:9 Aspect Reel */}
+            <div className="flex flex-col lg:flex-row gap-6 xl:gap-8 items-center lg:items-end justify-center w-full">
+              {/* Motion Edit 1: 16:9 Aspect Reel (Left Flank) */}
               {motion1 && (
-                <Reveal variant="up" delay={0.18}>
+                <Reveal variant="up" delay={0.1} className="w-full lg:w-auto flex justify-center">
                   <AutoplayReel
                     work={motion1}
                     badge="MOTION · 16:9"
+                    size="flank"
                   />
                 </Reveal>
               )}
 
-              {/* Motion Edit 2: 16:9 Aspect Reel */}
+              {/* 1 Masking Edit: 4:3 Aspect Reel (Middle & Largest Lead) */}
+              {masking && (
+                <Reveal variant="up" delay={0.18} className="w-full lg:w-auto flex justify-center">
+                  <AutoplayReel
+                    work={masking}
+                    badge="MASKING · 4:3"
+                    size="lead"
+                  />
+                </Reveal>
+              )}
+
+              {/* Motion Edit 2: 16:9 Aspect Reel (Right Flank) */}
               {motion2 && (
-                <Reveal variant="up" delay={0.26}>
+                <Reveal variant="up" delay={0.26} className="w-full lg:w-auto flex justify-center">
                   <AutoplayReel
                     work={motion2}
                     badge="MOTION · 16:9"
+                    size="flank"
                   />
                 </Reveal>
               )}

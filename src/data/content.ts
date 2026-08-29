@@ -109,6 +109,8 @@ export const SERVICES_COPY = {
   labelNum: "05",
   navLabel: "Services",
   title: "What I deliver",
+  titleLead: "WHAT I",
+  titleScript: "deliver",
   intro: "Scoped, priced and delivered per project — from a single reel to a full campaign package.",
   deliverableLabel: "D E L I V E R A B L E",
 };

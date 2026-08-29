@@ -13,7 +13,6 @@ gsap.registerPlugin(ScrollTrigger);
 export function Services() {
   const sectionRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -38,21 +37,6 @@ export function Services() {
           }
         );
       }
-
-      // Services cards scrubbed vertical offset (subtle stacking feel with zero pin on grid children per rule 7)
-      cardRefs.current.forEach((card, idx) => {
-        if (!card) return;
-        gsap.to(card, {
-          y: -idx * 12,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: card,
-            start: 'top bottom',
-            end: 'top 30%',
-            scrub: true,
-          },
-        });
-      });
     }, sectionRef);
 
     return () => ctx.revert();
@@ -71,8 +55,11 @@ export function Services() {
                 <span>{SERVICES_COPY.navLabel}</span>
               </div>
             </Reveal>
-            <h2 className="font-display font-black text-huge text-cream uppercase tracking-tight font-variation-wonk">
-              <SplitText text={SERVICES_COPY.title} by="char" />
+            <h2 className="font-display font-black text-huge text-cream uppercase tracking-tight font-variation-wonk leading-[0.9]">
+              <SplitText text={SERVICES_COPY.titleLead || 'WHAT I'} by="char" />
+              <span className="inline-block font-script text-terracotta lowercase text-[1.12em] font-normal leading-[0.72] -my-[0.18em] ml-3">
+                {SERVICES_COPY.titleScript || 'deliver'}
+              </span>
             </h2>
           </div>
           <Reveal variant="up" delay={0.1}>
@@ -83,14 +70,11 @@ export function Services() {
         </div>
 
         {/* 6 Services Stacked Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14">
           {SERVICES.map((service, index) => (
             <Reveal key={service.name} variant="up" delay={0.05 * index}>
               <div
-                ref={(el) => {
-                  cardRefs.current[index] = el;
-                }}
-                className="p-8 rounded-2xl bg-ground-2 border border-line-2 hover:border-terracotta/60 transition-all duration-300 flex flex-col justify-between gap-6 group hover:-translate-y-2 hover:shadow-[0_20px_40px_-10px_rgba(246,124,41,0.15)] shadow-lg h-full"
+                className="p-8 rounded-2xl bg-ground-2 border border-line-2 hover:border-terracotta/60 transition-[transform,border-color,box-shadow] duration-300 flex flex-col justify-between gap-6 group hover:-translate-y-2 hover:shadow-[0_20px_40px_-10px_rgba(246,124,41,0.15)] shadow-lg h-full"
               >
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between font-mono text-label text-muted">

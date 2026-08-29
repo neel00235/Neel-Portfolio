@@ -3,7 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { playSound } from '@/lib/sound';
+import { CURTAIN } from '@/data/content';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export function Curtain() {
   const [mounted, setMounted] = useState(false);
@@ -27,6 +31,10 @@ export function Curtain() {
     if (prefersReducedMotion || hasPlayed) {
       setIsDismissed(true);
       setMounted(true);
+      const siteElement = document.querySelector('main') as HTMLElement | null;
+      if (siteElement) {
+        siteElement.style.opacity = '1';
+      }
       return;
     }
 
@@ -35,20 +43,10 @@ export function Curtain() {
     let currentVal = 0;
     const startTime = performance.now();
 
-    /*
-      Weighted, order-independent progress signals.
-
-      Each signal contributes its weight exactly once, whether it resolves or
-      rejects, and targetVal is recomputed from the set of settled signals. That
-      makes progress a pure function of WHICH signals have landed rather than the
-      order they land in -- the previous mix of Math.max() for fonts and += for
-      the others meant a fast-settling poster swallowed the font weight and the
-      counter stalled at 65% until the hard cap rescued it.
-    */
     const WEIGHTS = { fonts: 0.45, poster: 0.45, dom: 0.1 } as const;
     type Signal = keyof typeof WEIGHTS;
     const settled = new Set<Signal>();
-    const BASELINE = 0.1; // so the counter starts moving immediately
+    const BASELINE = 0.1;
     let targetVal = BASELINE;
 
     const settle = (name: Signal) => {
@@ -58,7 +56,6 @@ export function Curtain() {
       settled.forEach((k) => {
         earned += WEIGHTS[k];
       });
-      // earned tops out at 1.0, so a full sweep lands exactly on 1.
       targetVal = Math.min(1, BASELINE + earned * (1 - BASELINE));
     };
 
@@ -70,9 +67,7 @@ export function Curtain() {
       onFonts();
     }
 
-    // Signal 2: Hero portrait decode (45%).
-    // Must be the same asset the hero actually renders (Hero.tsx portrait collage)
-    // or the preloader is gating on a file the browser never paints.
+    // Signal 2: Hero portrait decode (45%)
     const poster = new Image();
     poster.src = '/portrait/neel-collage.webp';
     const onPoster = () => settle('poster');
@@ -98,7 +93,6 @@ export function Curtain() {
         targetVal = 1;
       }
 
-      // Smoothly ease toward target value
       currentVal += (targetVal - currentVal) * 0.12;
       const displayVal = Math.min(100, Math.floor(currentVal * 100));
       setCounter(displayVal);
@@ -117,6 +111,10 @@ export function Curtain() {
     const onPageShow = (e: PageTransitionEvent) => {
       if (e.persisted) {
         setIsDismissed(true);
+        const siteElement = document.querySelector('main') as HTMLElement | null;
+        if (siteElement) {
+          siteElement.style.opacity = '1';
+        }
       }
     };
     window.addEventListener('pageshow', onPageShow);
@@ -127,71 +125,92 @@ export function Curtain() {
     };
   }, []);
 
-  // Dismiss function
+  // Dismiss function (for click, Enter, Escape)
   const dismissCurtain = () => {
     if (isDismissingRef.current || isDismissed) return;
     isDismissingRef.current = true;
     sessionStorage.setItem('neel_curtain_played', 'true');
     playSound('reveal');
 
-    // R-5: 240ms RGB split glitch at the moment of break
     setShowRgbSplit(true);
     setTimeout(() => setShowRgbSplit(false), 240);
-
-    // R-4: Scanline sweep across the curtain
     setShowScanline(true);
+
+    const siteElement = document.querySelector('main') as HTMLElement | null;
 
     const tl = gsap.timeline({
       onComplete: () => {
         setIsDismissed(true);
+        if (siteElement) {
+          gsap.set(siteElement, { opacity: 1 });
+        }
       },
     });
 
     if (topLeafRef.current) {
-      tl.to(
-        topLeafRef.current,
-        {
-          yPercent: -100,
-          duration: 0.85,
-          ease: 'power3.inOut',
-        },
-        0
-      );
+      tl.to(topLeafRef.current, { yPercent: -100, duration: 0.85, ease: 'power3.inOut' }, 0);
     }
-
     if (bottomLeafRef.current) {
-      tl.to(
-        bottomLeafRef.current,
-        {
-          yPercent: 100,
-          duration: 0.85,
-          ease: 'power3.inOut',
-        },
-        0
-      );
+      tl.to(bottomLeafRef.current, { yPercent: 100, duration: 0.85, ease: 'power3.inOut' }, 0);
     }
-
     if (curtainContentRef.current) {
-      tl.to(
-        curtainContentRef.current,
-        {
-          opacity: 0,
-          duration: 0.35,
-          ease: 'power2.out',
-        },
-        0
-      );
+      tl.to(curtainContentRef.current, { opacity: 0, duration: 0.35, ease: 'power2.out' }, 0);
+    }
+    if (siteElement) {
+      tl.to(siteElement, { opacity: 1, duration: 0.35, ease: 'power2.out' }, 0.5);
     }
   };
 
-  // Listeners for dismissal: scroll, click, Escape
+  // 1c. ScrollTrigger progressive scroll-scrubbed reveal (Item 1c)
   useEffect(() => {
     if (!mounted || isDismissed) return;
 
-    const onScroll = () => {
-      if (window.scrollY > 15) {
-        dismissCurtain();
+    const siteElement = document.querySelector('main') as HTMLElement | null;
+    if (siteElement) {
+      gsap.set(siteElement, { opacity: 0 });
+    }
+
+    const ctx = gsap.context(() => {
+      const scrubTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: document.body,
+          start: 'top top',
+          end: () => `+=${window.innerHeight}`,
+          scrub: true,
+          onLeave: () => {
+            sessionStorage.setItem('neel_curtain_played', 'true');
+            setIsDismissed(true);
+            if (siteElement) {
+              gsap.set(siteElement, { opacity: 1 });
+            }
+          },
+        },
+      });
+
+      // Drive only yPercent on the two leaves (0 -> -100 and 0 -> 100)
+      if (topLeafRef.current) {
+        scrubTl.to(topLeafRef.current, { yPercent: -100, ease: 'none', duration: 1 }, 0);
       }
+      if (bottomLeafRef.current) {
+        scrubTl.to(bottomLeafRef.current, { yPercent: 100, ease: 'none', duration: 1 }, 0);
+      }
+      if (curtainContentRef.current) {
+        scrubTl.to(curtainContentRef.current, { opacity: 0, ease: 'none', duration: 0.3 }, 0);
+      }
+
+      // Site behind only ramps opacity from 0 -> 1 over progress 0.8 -> 1.0
+      if (siteElement) {
+        scrubTl.fromTo(
+          siteElement,
+          { opacity: 0 },
+          { opacity: 1, ease: 'none', duration: 0.2 },
+          0.8
+        );
+      }
+    });
+
+    const onScroll = () => {
+      // Passive listener maintained per specification
     };
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -204,12 +223,15 @@ export function Curtain() {
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
+      ctx.revert();
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('keydown', onKeyDown);
+      if (siteElement) {
+        gsap.set(siteElement, { opacity: 1 });
+      }
     };
   }, [mounted, isDismissed]);
 
-  // If not mounted or already dismissed, render nothing (no flash on repeat visit)
   if (!mounted || isDismissed) return null;
 
   return createPortal(
@@ -221,109 +243,91 @@ export function Curtain() {
       className="fixed inset-0 select-none cursor-pointer overflow-hidden"
       style={{ zIndex: 'var(--z-curtain, 90)' }}
     >
-      {/* R-4: One scanline sweep on curtain open */}
+      {/* 1b. Full-bleed panel in #f67c29 (terracotta) revealed as the leaves part */}
+      <div className="absolute inset-0 bg-terracotta flex items-center justify-center pointer-events-none overflow-hidden">
+        {/* One continuous dark wordmark, vertically centred so it lands on the split
+            line and stays in exact register with the orange halves on the leaves —
+            as the curtain tears, the letters read as inverting rather than shifting. */}
+        <span
+          className="font-display font-black text-ground text-[clamp(3.4rem,12vw,10.5rem)] tracking-tighter uppercase leading-[0.8] font-variation-wonk whitespace-nowrap select-none"
+        >
+          {CURTAIN.wordmark}
+        </span>
+      </div>
+
+      {/* R-4: Scanline sweep across the curtain */}
       {showScanline && (
         <div className="absolute inset-0 pointer-events-none z-50 animate-scanline bg-gradient-to-b from-transparent via-terracotta/20 to-transparent h-24 w-full" />
       )}
 
-      {/* Top Leaf (Height 50svh, with SVG Mask Knockout) */}
+      {/* Top Leaf (Height 50svh, Dark Band #13100c splitting up) */}
       <div
         ref={topLeafRef}
-        className={`absolute top-0 inset-x-0 h-[50svh] overflow-hidden ${
+        className={`absolute top-0 inset-x-0 h-[50svh] overflow-hidden bg-ground ${
           showRgbSplit ? 'animate-rgbSplit' : ''
         }`}
       >
-        <svg
-          className="w-full h-full block"
-          viewBox="0 0 1200 600"
-          preserveAspectRatio="xMidYMax slice"
-        >
-          <defs>
-            <mask id="matte-knockout-top">
-              {/* White makes the leaf visible */}
-              <rect width="1200" height="600" fill="white" />
-              {/* Black text cuts out letterforms through to background */}
-              <text
-                x="600"
-                y="600"
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill="black"
-                fontSize="112"
-                fontWeight="900"
-                letterSpacing="10"
-                style={{
-                  fontFamily: 'var(--font-fraunces), Fraunces, serif',
-                  fontVariationSettings: "'WONK' 1",
-                }}
-              >
-                NEEL PATEL
-              </text>
-            </mask>
-          </defs>
-          <rect
-            width="1200"
-            height="600"
-            fill="#13100c"
-            mask="url(#matte-knockout-top)"
-          />
-        </svg>
+        {/* Top half of the wordmark. The wrapper is anchored to the seam and
+            nudged down half its own height, so the glyphs are centred exactly on
+            the split and this leaf's overflow-hidden keeps only their top half. */}
+        <div className="absolute bottom-0 inset-x-0 translate-y-1/2 flex justify-center pointer-events-none">
+          <span
+            className="font-display font-black text-terracotta text-[clamp(3.4rem,12vw,10.5rem)] tracking-tighter uppercase leading-[0.8] font-variation-wonk whitespace-nowrap"
+          >
+            {CURTAIN.wordmark}
+          </span>
+        </div>
 
         {/* Top Leaf Metadata UI */}
         <div
           ref={curtainContentRef}
           className="absolute top-8 inset-x-0 px-6 md:px-12 flex justify-between items-center font-mono text-label text-muted tracking-widest uppercase pointer-events-none"
         >
-          <span className="text-terracotta font-semibold">✦ PORTFOLIO 2026</span>
-          <span className="text-xs">AHMEDABAD // INDIA</span>
+          <span className="text-terracotta font-semibold">✦ {CURTAIN.edition}</span>
+          <span className="text-xs">{CURTAIN.topLabelRight}</span>
         </div>
       </div>
 
-      {/* Bottom Leaf (Height 50svh, with SVG Mask Knockout) */}
+      {/* Bottom Leaf (Height 50svh, Dark Band #13100c splitting down) */}
       <div
         ref={bottomLeafRef}
-        className={`absolute bottom-0 inset-x-0 h-[50svh] overflow-hidden ${
+        className={`absolute bottom-0 inset-x-0 h-[50svh] overflow-hidden bg-ground ${
           showRgbSplit ? 'animate-rgbSplit' : ''
         }`}
       >
-        <svg
-          className="w-full h-full block"
-          viewBox="0 0 1200 600"
-          preserveAspectRatio="xMidYMin slice"
-        >
-          <defs>
-            <mask id="matte-knockout-bottom">
-              {/* White makes the leaf visible */}
-              <rect width="1200" height="600" fill="white" />
-              {/* Black text cuts out letterforms through to background */}
-              <text
-                x="600"
-                y="0"
-                textAnchor="middle"
-                dominantBaseline="central"
-                fill="black"
-                fontSize="112"
-                fontWeight="900"
-                letterSpacing="10"
-                style={{
-                  fontFamily: 'var(--font-fraunces), Fraunces, serif',
-                  fontVariationSettings: "'WONK' 1",
-                }}
-              >
-                NEEL PATEL
-              </text>
-            </mask>
-          </defs>
-          <rect
-            width="1200"
-            height="600"
-            fill="#13100c"
-            mask="url(#matte-knockout-bottom)"
-          />
-        </svg>
+        {/* Bottom half of the same wordmark at the same seam-centred position — not
+            a mirror. Pulled up half its height so this leaf's overflow-hidden keeps
+            only the lower half; the two leaves compose one wordmark that tears apart. */}
+        <div className="absolute top-0 inset-x-0 -translate-y-1/2 flex justify-center pointer-events-none">
+          <span
+            className="font-display font-black text-terracotta text-[clamp(3.4rem,12vw,10.5rem)] tracking-tighter uppercase leading-[0.8] font-variation-wonk whitespace-nowrap"
+          >
+            {CURTAIN.wordmark}
+          </span>
+        </div>
 
-        {/* Bottom Leaf UI & Real-Signal Preloader Counter */}
+        {/* Bottom Leaf UI & Preloader Counter with Rotating Badge */}
         <div className="absolute bottom-10 inset-x-0 px-6 flex flex-col items-center gap-4 text-center pointer-events-none">
+          {/* Rotating badge from CURTAIN.scrollBadgePath */}
+          <div className="relative w-20 h-20 animate-spin-slow">
+            <svg viewBox="0 0 100 100" className="w-full h-full">
+              <defs>
+                <path
+                  id="curtain-badge-path"
+                  d="M 50, 50 m -36, 0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0"
+                />
+              </defs>
+              <text className="font-mono text-[9px] fill-terracotta tracking-[0.2em] uppercase font-bold">
+                <textPath href="#curtain-badge-path" startOffset="0%">
+                  {CURTAIN.scrollBadgePath}
+                </textPath>
+              </text>
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-terracotta text-sm">↓</span>
+            </div>
+          </div>
+
           {/* R-3: 000 -> 100 Tabular Mono Numerals */}
           <div className="flex items-center gap-3 font-mono">
             <span className="text-2xl md:text-3xl font-bold tracking-widest tabular-nums text-cream">
@@ -334,10 +338,10 @@ export function Curtain() {
 
           <div className="flex flex-col items-center gap-1">
             <span className="font-mono text-terracotta text-label uppercase tracking-[0.3em] font-semibold">
-              {preloaderDone ? 'READY · SCROLL OR CLICK TO ENTER' : 'LOADING REEL ASSETS'}
+              {preloaderDone ? CURTAIN.scrollBadgeStatic : 'LOADING REEL ASSETS'}
             </span>
             <span className="font-mono text-[0.62rem] text-muted tracking-widest uppercase">
-              PRESS ESCAPE OR CLICK ANYWHERE
+              {CURTAIN.subTagline}
             </span>
           </div>
         </div>

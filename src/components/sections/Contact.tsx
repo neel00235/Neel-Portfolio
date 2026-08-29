@@ -158,14 +158,14 @@ export function Contact() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
           {/* Left Column: Headline & Direct Endpoints */}
-          <div className="lg:col-span-6 flex flex-col">
+          <div className="lg:col-span-6 flex flex-col relative z-20">
             <h2 ref={headlineRef} className="font-display font-black text-huge sm:text-mega text-cream uppercase leading-[0.9] tracking-tight mb-8 font-variation-wonk">
               <SplitText text={CONTACT_COPY.headlinePrefix} by="char" />
-              <span className="inline-block font-script text-terracotta lowercase text-[0.95em] font-normal leading-[0.72] -my-[0.18em] mx-2">
+              <span className="inline-block font-script text-terracotta lowercase text-[0.92em] sm:text-[1.08em] lg:text-[1.85em] font-normal leading-[0.68] -my-[0.22em] lg:-my-[0.34em] mx-1 sm:mx-2 select-none pointer-events-none relative z-10">
                 {CONTACT_COPY.headlineScript}
               </span>
               <SplitText text={CONTACT_COPY.headlineMiddle} by="char" />
-              <span className="block text-cream">
+              <span className="block text-cream relative z-20">
                 <SplitText text={CONTACT_COPY.headlineMega} by="char" />
               </span>
             </h2>
@@ -234,7 +234,7 @@ export function Contact() {
           </div>
 
           {/* Right Column: 3-Field Contact Card + Honeypot */}
-          <Reveal variant="scale" delay={0.15} className="lg:col-span-6">
+          <Reveal variant="scale" delay={0.15} className="lg:col-span-6 relative z-10">
             <div ref={formCardRef} className="p-8 md:p-10 rounded-2xl bg-ground-2 border border-line shadow-2xl">
               {submitted ? (
                 <div className="py-12 flex flex-col items-center text-center gap-4">
