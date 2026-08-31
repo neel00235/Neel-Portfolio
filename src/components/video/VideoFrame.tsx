@@ -39,6 +39,7 @@ export function VideoFrame({
 
   const [isPlayingFull, setIsPlayingFull] = useState(autoPlayLead);
   const [hoverMounted, setHoverMounted] = useState(false);
+  const [hoverReady, setHoverReady] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -56,6 +57,16 @@ export function VideoFrame({
   const { activeFullId, activePreviewId, playFull, stopFull, playPreview, stopPreview } =
     useVideoRegistry();
   const setTone = useTone((s) => s.setTone);
+
+  // The lead film auto-starts without a click, so register it or the single-player
+  // invariant at :79 never sees it.
+  const leadRegistered = useRef(false);
+  useEffect(() => {
+    if (!autoPlayLead || leadRegistered.current) return;
+    leadRegistered.current = true;
+    playFull(id);
+    if (tone) setTone(tone);
+  }, [autoPlayLead, id, playFull, tone, setTone]);
 
   const lqip = (lqipData as Record<string, string>)[id] || '';
 
@@ -93,6 +104,7 @@ export function VideoFrame({
       hoverIframeRef.current = null;
     }
     setHoverMounted(false);
+    setHoverReady(false);
   };
 
   // Rule 2: Exactly one hover preview alive site-wide. A second pointerenter tears down the first.
@@ -157,6 +169,7 @@ export function VideoFrame({
 
     // Rule 2: A second pointerenter tears down the first before arming
     playPreview(id);
+    setHoverReady(false);
 
     // Rule 1: 140ms dwell timer before mounting
     if (dwellTimerRef.current) clearTimeout(dwellTimerRef.current);
@@ -223,7 +236,7 @@ export function VideoFrame({
         <>
           <div
             className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-[260ms] ease-io ${
-              hoverMounted ? 'opacity-0' : 'opacity-100'
+              hoverReady ? 'opacity-0' : 'opacity-100'
             }`}
           >
             <Image
@@ -240,13 +253,17 @@ export function VideoFrame({
 
           {/* R-30: Autoplay on hover iframe (Mounted after 140ms dwell) */}
           {hoverMounted && (
-            <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none transition-opacity duration-[260ms] ease-io">
+            <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
               <iframe
                 ref={hoverIframeRef}
                 src={`https://player.vimeo.com/video/${id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
                 title={title}
-                className="w-full h-full border-0 pointer-events-none"
+                onLoad={() => setTimeout(() => setHoverReady(true), 250)}
+                className={`w-full h-full border-0 pointer-events-none bg-black transition-opacity duration-400 ${
+                  hoverReady ? 'opacity-100' : 'opacity-0'
+                }`}
                 allow="autoplay; fullscreen; picture-in-picture"
+                style={{ colorScheme: 'dark' }}
               />
             </div>
           )}
@@ -279,7 +296,15 @@ export function VideoFrame({
             videoId={id}
             title={title}
             autoPlay={true}
-            onEnded={() => setIsPlayingFull(false)}
+            onReady={() => {
+              if (autoPlayLead) {
+                window.dispatchEvent(new Event('portfolio:leadfilm-ready'));
+              }
+            }}
+            onEnded={() => {
+              // The lead film is a loop — a stray finish event must not collapse it to the poster.
+              if (!autoPlayLead) setIsPlayingFull(false);
+            }}
             onTimeUpdate={(percent, seconds) => {
               setProgress(percent);
               setCurrentTime(seconds);

@@ -14,20 +14,27 @@ import { SplitText } from '@/components/motion/SplitText';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const RAIL_H = 288; // px — the 4:3 reference card's current height (384 × 3/4)
+
+const RATIO: Record<string, number> = {
+  '16:9': 16 / 9,
+  '4:3': 4 / 3,
+  '1:1': 1,
+  '3:4': 3 / 4,
+  '9:16': 9 / 16,
+};
+
 function MarqueeReelCard({ work }: { work: Work }) {
-  const aspectClass =
-    work.aspect === '9:16'
-      ? 'aspect-[9/16]'
-      : work.aspect === '4:3'
-      ? 'aspect-[4/3]'
-      : work.aspect === '1:1'
-      ? 'aspect-square'
-      : 'aspect-video';
+  const [reelReady, setReelReady] = useState(false);
+  const ratio = RATIO[work.aspect] ?? 16 / 9;
 
   return (
-    <div className="flex-shrink-0 w-80 md:w-96 flex flex-col gap-3 group select-none">
-      <div className="relative rounded-lg overflow-hidden border border-line-2 group-hover:border-terracotta/70 transition-[transform,border-color,box-shadow] duration-300 shadow-xl group-hover:scale-[1.02] bg-black">
-        <div className={`relative w-full ${aspectClass}`}>
+    <div
+      className="flex-shrink-0 flex flex-col gap-3 group select-none"
+      style={{ width: `${Math.round(RAIL_H * ratio)}px` }}
+    >
+      <div className="relative rounded-lg overflow-hidden border border-line-2 group-hover:border-terracotta/70 transition-[transform,border-color,box-shadow] duration-300 shadow-xl group-hover:scale-[1.06] group-hover:z-20 bg-black">
+        <div className="relative w-full" style={{ height: `${RAIL_H}px` }}>
           {/* Real poster frame sibling behind iframe (Defect 4) */}
           <Image
             src={`/posters/${work.id}.webp`}
@@ -40,9 +47,13 @@ function MarqueeReelCard({ work }: { work: Work }) {
           <iframe
             src={`https://player.vimeo.com/video/${work.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
             title={work.title}
-            className="absolute inset-0 w-full h-full border-0 pointer-events-none z-10 opacity-100"
+            onLoad={() => setTimeout(() => setReelReady(true), 250)}
+            className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 bg-black transition-opacity duration-400 ${
+              reelReady ? 'opacity-100' : 'opacity-0'
+            }`}
             allow="autoplay; fullscreen; picture-in-picture"
             loading="lazy"
+            style={{ colorScheme: 'dark' }}
           />
           <div className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
         </div>
@@ -75,6 +86,10 @@ const FAN_Y_OFFSETS = [24, 14, 6, 2, 0, 2, 6, 14, 24];
 export function SelectedWorks() {
   const [modalWork, setModalWork] = useState<ModalWork | null>(null);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [deckOpen, setDeckOpen] = useState(false);
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+  const [conroyHeroReady, setConroyHeroReady] = useState(false);
+  const [hoveredReelReady, setHoveredReelReady] = useState(false);
 
   const worksRef = useRef<HTMLElement>(null);
   const worksHeaderRef = useRef<HTMLDivElement>(null);
@@ -82,6 +97,7 @@ export function SelectedWorks() {
   const railContainerRef = useRef<HTMLDivElement>(null);
   const conroyHeaderRef = useRef<HTMLDivElement>(null);
   const timelineHeaderRef = useRef<HTMLDivElement>(null);
+  const fanContainerRef = useRef<HTMLDivElement>(null);
 
   // Conroy campaign works: 1 hero film + 9 vertical reels (Defect 7)
   const conroySection = SECTIONS.find((s) => s.slug === 'brand-films');
@@ -112,6 +128,8 @@ export function SelectedWorks() {
     0,
     RAIL_LIMIT
   );
+  const railRowA = railWorks.filter((_, i) => i % 2 === 0);
+  const railRowB = railWorks.filter((_, i) => i % 2 === 1);
 
   useEffect(() => {
     const mql = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -179,6 +197,15 @@ export function SelectedWorks() {
         );
       }
 
+      // 4. Conroy Playing-Card Deck opening trigger (Item 4b)
+      if (fanContainerRef.current) {
+        ScrollTrigger.create({
+          trigger: fanContainerRef.current,
+          start: 'top 75%',
+          once: true,
+          onEnter: () => setDeckOpen(true),
+        });
+      }
     }, worksRef);
 
     return () => ctx.revert();
@@ -191,9 +218,6 @@ export function SelectedWorks() {
 
   return (
     <section ref={worksRef} id="works" className="relative w-full py-24 px-6 md:px-12 border-b border-line overflow-hidden">
-      {/* Animated Square Grid Ambient Section Background */}
-      <div className="absolute inset-0 pointer-events-none grid-overlay opacity-40 z-0" aria-hidden="true" />
-
       {/* Lightbox Zoom Video Player Modal */}
       <VideoModal work={modalWork} onClose={() => setModalWork(null)} />
 
@@ -202,7 +226,7 @@ export function SelectedWorks() {
         <div ref={worksHeaderRef} className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 pb-8 border-b border-line-2">
           <div>
             <Reveal variant="fade">
-              <div className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-2">
+              <div className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-2 animate-text-breathe [animation-duration:7.6s] [animation-delay:-0.5s]">
                 <span>{WORKS_COPY.labelNum}</span>
                 <span>/</span>
                 <span>{WORKS_COPY.navLabel}</span>
@@ -245,7 +269,7 @@ export function SelectedWorks() {
                 duration={leadFilm.duration}
                 tone={leadFilm.tone}
                 priority={true}
-                autoPlayLead={false}
+                autoPlayLead={true}
                 className="w-full"
               />
             </div>
@@ -257,30 +281,45 @@ export function SelectedWorks() {
           <Reveal variant="up">
             <div ref={timelineHeaderRef} className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
               <div>
-                <span className="font-mono text-label text-terracotta tracking-widest uppercase block mb-1">
+                <span className="font-mono text-label text-terracotta tracking-widest uppercase block mb-1 animate-text-breathe [animation-duration:8.0s] [animation-delay:-2.8s]">
                   ABSOLUTE CINEMA FIRST
                 </span>
-                <h3 className="font-display font-black text-big text-cream uppercase">
+                <h3 className="font-taurian text-big text-cream uppercase tracking-wide">
                   <SplitText text={WORKS_COPY.railHeading} by="word" />
                 </h3>
               </div>
             </div>
           </Reveal>
 
-          {/* Continuous Right-to-Left Marquee */}
-          <div className="relative w-full overflow-hidden py-4 -mx-6 md:-mx-12 px-6 md:px-12">
+          {/* Continuous Right-to-Left Marquee — Two Offset Rows */}
+          <div className="relative w-full overflow-hidden py-8 -mx-6 md:-mx-12 px-6 md:px-12">
+            {/* Row A */}
             <div
               className={`flex gap-6 w-max ${
-                prefersReducedMotion ? '' : 'animate-marquee-slow hover:[animation-play-state:paused]'
+                prefersReducedMotion ? '' : 'animate-marquee-slow'
               }`}
             >
-              {/* Primary set of cards */}
-              {railWorks.map((work) => (
-                <MarqueeReelCard key={`primary-${work.id}`} work={work} />
+              {railRowA.map((work) => (
+                <MarqueeReelCard key={`railA1-${work.id}`} work={work} />
               ))}
-              {/* Duplicated set of cards for seamless infinite wrap */}
-              {railWorks.map((work) => (
-                <MarqueeReelCard key={`duplicate-${work.id}`} work={work} />
+              {railRowA.map((work) => (
+                <MarqueeReelCard key={`railA2-${work.id}`} work={work} />
+              ))}
+            </div>
+
+            {/* Row B */}
+            <div
+              className={`flex gap-6 w-max mt-6 ml-[-140px] ${
+                prefersReducedMotion
+                  ? ''
+                  : 'animate-marquee-slow [animation-duration:88s]'
+              }`}
+            >
+              {railRowB.map((work) => (
+                <MarqueeReelCard key={`railB1-${work.id}`} work={work} />
+              ))}
+              {railRowB.map((work) => (
+                <MarqueeReelCard key={`railB2-${work.id}`} work={work} />
               ))}
             </div>
           </div>
@@ -295,16 +334,28 @@ export function SelectedWorks() {
               className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8"
             >
               <div>
-                <span className="font-mono text-label text-terracotta tracking-widest uppercase block mb-2 font-semibold">
+                <span className="font-mono text-label text-terracotta tracking-widest uppercase block mb-2 font-semibold animate-text-breathe [animation-duration:7.1s] [animation-delay:-1.4s]">
                   {WORKS_COPY.conroyHint}
                 </span>
-                <h3 className="font-display font-black text-big text-cream uppercase">
+                <span className="font-script text-terracotta text-3xl sm:text-4xl -mb-2 select-none block animate-text-breathe [animation-duration:5.6s] [animation-delay:-1.9s]">
+                  {WORKS_COPY.conroyScript}
+                </span>
+                <h3 className="font-taurian text-big text-cream uppercase tracking-wide">
                   <SplitText text={WORKS_COPY.conroyHeading} by="word" />
                 </h3>
               </div>
-              <p className="font-sans text-body text-cream/70 max-w-md">
-                {WORKS_COPY.conroyIntro} 1 cinematic hero film with all 9 vertical reels delivered for the campaign.
-              </p>
+              <div className="flex flex-col gap-2 max-w-md">
+                <p className="font-sans text-body text-cream/70">
+                  {WORKS_COPY.conroyIntro} 1 cinematic hero film with all 9 vertical reels delivered for the campaign.
+                </p>
+                <div className="flex items-center gap-2 font-mono text-xs text-terracotta font-semibold uppercase tracking-wider">
+                  <span>{WORKS_COPY.conroyStatA}</span>
+                  <span className="text-muted">·</span>
+                  <span>{WORKS_COPY.conroyStatB}</span>
+                  <span className="text-muted">·</span>
+                  <span>{WORKS_COPY.conroyStatC}</span>
+                </div>
+              </div>
             </div>
           </Reveal>
 
@@ -322,58 +373,115 @@ export function SelectedWorks() {
                 <iframe
                   src={`https://player.vimeo.com/video/${conroyHero.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
                   title={conroyHero.title}
-                  className="absolute inset-0 w-full h-full border-0 pointer-events-none z-10 opacity-100"
+                  onLoad={() => setTimeout(() => setConroyHeroReady(true), 250)}
+                  className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 bg-black transition-opacity duration-400 ${
+                    conroyHeroReady ? 'opacity-100' : 'opacity-0'
+                  }`}
                   allow="autoplay; fullscreen; picture-in-picture"
                   loading="lazy"
+                  style={{ colorScheme: 'dark' }}
                 />
                 <div className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
               </div>
             </div>
+            <p className="font-mono text-label text-muted tracking-widest uppercase mt-4 text-center sm:text-left">
+              {WORKS_COPY.conroyReelsLead}
+            </p>
           </Reveal>
 
           {/* 6c. Desktop Playing-Card Fan (exactly 9 cuts) */}
           {!prefersReducedMotion && (
-            <div className="relative w-full h-[400px] hidden sm:flex items-center justify-center overflow-visible my-8">
-              <div className="relative w-[160px] h-[284px]">
-                {conroyReels.map((reel, idx) => {
-                  const step = idx - 4;
-                  const angle = FAN_ANGLES[idx] ?? 0;
-                  const yOffset = FAN_Y_OFFSETS[idx] ?? 0;
-                  const xOffset = step * 68;
+            <div
+              ref={fanContainerRef}
+              className="relative w-full flex flex-col items-center justify-center overflow-visible my-8"
+            >
+              <div className="relative w-full h-[480px] hidden sm:flex items-center justify-center overflow-visible">
+                <div className="relative w-[190px] h-[338px] scale-[0.82] xl:scale-100 origin-center">
+                  {conroyReels.map((reel, idx) => {
+                    const angle = deckOpen ? (FAN_ANGLES[idx] ?? 0) : (idx - 4) * 0.8;
+                    const xOffset = deckOpen ? (idx - 4) * 78 : (idx - 4) * 1.5;
+                    const yOffset = deckOpen ? (FAN_Y_OFFSETS[idx] ?? 0) : 0;
+                    const isHovered = hoveredIdx === idx;
 
-                  return (
-                    <button
-                      key={reel.id}
-                      type="button"
-                      onClick={() => handleCardClick(reel)}
-                      className="playing-card-fan-item absolute inset-0 w-full h-full rounded-xl overflow-hidden border border-line-2 bg-ground-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-ground cursor-pointer select-none"
-                      style={
-                        {
-                          '--card-x': `${xOffset}px`,
-                          '--card-y': `${yOffset}px`,
-                          '--card-angle': `${angle}deg`,
-                          zIndex: 10 + idx,
-                        } as React.CSSProperties
-                      }
-                      aria-label={`Open ${reel.title} reel`}
-                    >
-                      <div className="relative w-full h-full aspect-[9/16]">
-                        <Image
-                          src={`/posters/${reel.id}.webp`}
-                          alt={reel.title}
-                          fill
-                          sizes="180px"
-                          className="object-cover pointer-events-none"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-ground/90 via-transparent to-transparent pointer-events-none" />
-                        <div className="absolute bottom-2 inset-x-2 flex justify-between items-end font-mono text-[0.62rem] text-muted pointer-events-none">
-                          <span className="text-cream font-medium truncate pr-1">{reel.title}</span>
-                          <span className="text-terracotta shrink-0 font-semibold">{reel.duration}s</span>
+                    return (
+                      <button
+                        key={reel.id}
+                        type="button"
+                        onClick={() => handleCardClick(reel)}
+                        onMouseEnter={() => {
+                          setHoveredIdx(idx);
+                          setHoveredReelReady(false);
+                        }}
+                        onMouseLeave={() => {
+                          setHoveredIdx(null);
+                          setHoveredReelReady(false);
+                        }}
+                        onFocus={() => {
+                          setHoveredIdx(idx);
+                          setHoveredReelReady(false);
+                        }}
+                        onBlur={() => {
+                          setHoveredIdx(null);
+                          setHoveredReelReady(false);
+                        }}
+                        className="playing-card-fan-item absolute inset-0 w-full h-full focus-visible:outline-none cursor-pointer select-none bg-transparent border-0 p-0"
+                        style={
+                          {
+                            '--card-x': `${xOffset}px`,
+                            '--card-y': `${yOffset}px`,
+                            '--card-angle': `${angle}deg`,
+                            transitionDelay: `${idx * 45}ms`,
+                            zIndex: 10 + idx,
+                          } as React.CSSProperties
+                        }
+                        aria-label={`Open ${reel.title} reel`}
+                      >
+                        <div className="playing-card-lift pointer-events-none relative w-full h-full rounded-xl overflow-hidden border border-line-2 bg-ground-2 focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-ground">
+                          <div className="relative w-full h-full aspect-[9/16]">
+                            <Image
+                              src={`/posters/${reel.id}.webp`}
+                              alt={reel.title}
+                              fill
+                              sizes="190px"
+                              className="object-cover pointer-events-none"
+                            />
+                            {isHovered && (
+                              <iframe
+                                src={`https://player.vimeo.com/video/${reel.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=540p`}
+                                title={reel.title}
+                                onLoad={() => setTimeout(() => setHoveredReelReady(true), 250)}
+                                className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 bg-black transition-opacity duration-400 ${
+                                  hoveredReelReady ? 'opacity-100' : 'opacity-0'
+                                }`}
+                                allow="autoplay; fullscreen; picture-in-picture"
+                                loading="lazy"
+                                style={{ colorScheme: 'dark' }}
+                              />
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-t from-ground/90 via-transparent to-transparent pointer-events-none z-20" />
+                            <div className="absolute bottom-2 inset-x-2 flex justify-between items-end font-mono text-[0.62rem] text-muted pointer-events-none z-20">
+                              <span className="text-cream font-medium truncate pr-1">{reel.title}</span>
+                              <span className="text-terracotta shrink-0 font-semibold">{reel.duration}s</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </button>
-                  );
-                })}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="mt-8 mb-4 text-center hidden sm:flex flex-col items-center select-none">
+                <span className="conroy-big-script font-script text-terracotta text-4xl sm:text-5xl -mb-2 select-none block animate-text-breathe [animation-duration:5.8s] [animation-delay:-1.2s]">
+                  {WORKS_COPY.conroyBigScript}
+                </span>
+                <span className="conroy-big-display font-display font-black text-huge text-cream uppercase tracking-tight font-variation-wonk leading-none">
+                  {WORKS_COPY.conroyBigDisplay}
+                </span>
+              </div>
+              <div className="mt-2 text-center hidden sm:block">
+                <span className="font-mono text-label text-muted tracking-widest uppercase">
+                  {WORKS_COPY.conroyDeckHint}
+                </span>
               </div>
             </div>
           )}

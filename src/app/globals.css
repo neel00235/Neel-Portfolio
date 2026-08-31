@@ -59,6 +59,8 @@ html {
   -moz-osx-font-smoothing: grayscale;
   color-scheme: dark;
   accent-color: var(--terracotta);
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* legacy Edge */
 }
 
 /* Custom cursor active class toggled via JavaScript on first pointer move */
@@ -133,20 +135,12 @@ body {
   color: var(--ground);
 }
 
-/* Custom minimal scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: var(--ground);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(214, 167, 108, 0.25);
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--terracotta);
+/* Hidden scrollbar — scrolling still works, chrome is invisible */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;                  /* Chrome / Safari */
 }
 
 /* Screen reader only utility */
@@ -182,7 +176,7 @@ body {
 }
 
 .grid-overlay {
-  background-size: 44px 44px;
+  background-size: 28px 28px;
   background-image: 
     linear-gradient(to right, rgba(250, 244, 232, 0.06) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(250, 244, 232, 0.06) 1px, transparent 1px);
@@ -208,20 +202,32 @@ body.grid-off .grid-overlay,
   }
 }
 
-/* Item 6: Playing-Card Fan for Conroy Campaign */
+/* Item 4: Playing-Card Fan for Conroy Campaign */
 .playing-card-fan-item {
   transform: translate3d(var(--card-x), var(--card-y), 0) rotate(var(--card-angle));
   transform-origin: 50% 120%;
-  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 280ms cubic-bezier(0.16, 1, 0.3, 1), border-color 280ms cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 15px 30px -8px rgba(0, 0, 0, 0.7);
+  transition: transform 520ms cubic-bezier(0.65, 0.05, 0.36, 1), z-index 0ms;
 }
 
 .playing-card-fan-item:hover,
 .playing-card-fan-item:focus-visible {
-  transform: translate3d(var(--card-x), -36px, 0) rotate(0deg) scale(1.08);
-  z-index: 50 !important;
-  border-color: rgba(246, 124, 41, 0.8) !important;
-  box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.9), 0 0 25px rgba(246, 124, 41, 0.3) !important;
+  z-index: 60 !important;
+}
+
+.playing-card-lift {
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    transform 200ms cubic-bezier(0.65, 0.05, 0.36, 1),
+    box-shadow 200ms cubic-bezier(0.65, 0.05, 0.36, 1),
+    border-color 200ms cubic-bezier(0.65, 0.05, 0.36, 1);
+  box-shadow: 0 15px 30px -8px rgba(0, 0, 0, 0.7);
+}
+
+.playing-card-fan-item:hover .playing-card-lift,
+.playing-card-fan-item:focus-visible .playing-card-lift {
+  transform: translate3d(0, -44px, 0) scale(1.10);
+  box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.9), 0 0 25px rgba(246, 124, 41, 0.3);
+  border-color: rgba(246, 124, 41, 0.8);
 }
 
 /* Floating animated gradient textures shifting back and forth */

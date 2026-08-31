@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import {
   fraunces,
+  bodoniModa,
+  mbfTaurian,
   instrumentSerif,
   ephesis,
   manrope,
@@ -64,11 +66,14 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${instrumentSerif.variable} ${ephesis.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
+      className={`${fraunces.variable} ${bodoniModa.variable} ${mbfTaurian.variable} ${instrumentSerif.variable} ${ephesis.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
     >
       <head>
         <link rel="preconnect" href="https://player.vimeo.com" />
         <link rel="preconnect" href="https://i.vimeocdn.com" />
+        <noscript>
+          <style>{`[data-curtain-backdrop]{display:none!important}`}</style>
+        </noscript>
       </head>
       <body
         suppressHydrationWarning

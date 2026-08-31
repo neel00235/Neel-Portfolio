@@ -39,7 +39,10 @@ export function SplitText({
     const targets = el.querySelectorAll('.split-unit');
     if (!targets.length) return;
 
+    const masks = el.querySelectorAll('.split-mask');
+
     const ctx = gsap.context(() => {
+      gsap.set(masks, { overflow: 'hidden' });
       gsap.fromTo(
         targets,
         {
@@ -53,6 +56,9 @@ export function SplitText({
           ease: 'power3.out',
           stagger: staggerDuration,
           delay,
+          onComplete: () => {
+            gsap.set(masks, { overflow: 'visible' });
+          },
           scrollTrigger: {
             trigger: el,
             start: 'top 88%',
@@ -80,7 +86,7 @@ export function SplitText({
                 {Array.from(word).map((char, charIdx) => (
                   <span
                     key={charIdx}
-                    className="inline-block overflow-hidden align-top"
+                    className="split-mask inline-block align-top"
                   >
                     <span className="split-unit inline-block">
                       {char}
@@ -96,7 +102,7 @@ export function SplitText({
             ))
           : words.map((word, wordIdx) => (
               <span key={wordIdx} className="inline-block">
-                <span className="inline-block overflow-hidden align-top">
+                <span className="split-mask inline-block align-top">
                   <span className="split-unit inline-block">
                     {word}
                   </span>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Volume2, VolumeX, Grid } from 'lucide-react';
 import { useSound } from '@/store/useSound';
 import { Magnetic } from '@/components/cursor/Magnetic';
@@ -68,10 +69,17 @@ export function Header() {
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="font-display font-black text-sm tracking-widest text-cream uppercase hover:text-terracotta transition-colors"
+            className="inline-flex items-center opacity-90 hover:opacity-100 hover:scale-105 transition-all duration-200"
             data-cursor="Open"
           >
-            NEEL PATEL
+            <Image
+              src="/brand/neel-logo.webp"
+              alt="Neel Patel"
+              width={193}
+              height={128}
+              priority
+              className="h-7 w-auto"
+            />
           </Link>
           <span className="hidden sm:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-ground-2 border border-line-2 font-mono text-[0.62rem] text-muted tracking-wider">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulseDot" />

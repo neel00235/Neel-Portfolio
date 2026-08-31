@@ -23,6 +23,8 @@ export default {
       },
       fontFamily: {
         display: ['var(--font-fraunces)', 'Georgia', 'serif'],
+        displayAlt: ['var(--font-display-alt)', 'Georgia', 'serif'],
+        taurian: ['var(--font-taurian)', 'Georgia', 'serif'],
         serif:   ['var(--font-instrument)', 'Georgia', 'serif'],
         script:  ['var(--font-ephesis)', 'cursive'],
         sans:    ['var(--font-manrope)', 'system-ui', '-apple-system', 'sans-serif'],
@@ -55,6 +57,13 @@ export default {
         scanline:  { '0%': { transform: 'translate3d(0,-100%,0)' }, '100%': { transform: 'translate3d(0,100%,0)' } },
         rgbSplit:  { '0%,100%': { transform: 'translate3d(0,0,0)' }, '20%': { transform: 'translate3d(-3px,1px,0)' }, '40%': { transform: 'translate3d(2px,-2px,0)' }, '60%': { transform: 'translate3d(-1px,2px,0)' }, '80%': { transform: 'translate3d(3px,0,0)' } },
         pulseDot:  { '0%,100%': { opacity: '1', transform: 'scale(1)' }, '50%': { opacity: '.45', transform: 'scale(.82)' } },
+        textFloat:   { '0%,100%': { transform: 'translate3d(0,0,0)' },
+                       '50%':     { transform: 'translate3d(0,-2px,0)' } },
+        textBreathe: { '0%,100%': { opacity: '1' },
+                       '50%':     { opacity: '.90' } },
+        gradientPan: { '0%': { backgroundPosition: '0% 50%' },
+                       '50%': { backgroundPosition: '100% 50%' },
+                       '100%': { backgroundPosition: '0% 50%' } },
       },
       animation: {
         fadeIn:   'fadeIn 420ms cubic-bezier(.16,1,.3,1)',
@@ -65,6 +74,9 @@ export default {
         scanline: 'scanline 240ms linear 1',
         rgbSplit: 'rgbSplit 240ms steps(5) 1',
         pulseDot: 'pulseDot 2.4s ease-in-out infinite',
+        'text-float':   'textFloat 6.5s cubic-bezier(.4,0,.2,1) infinite',
+        'text-breathe': 'textBreathe 5.2s cubic-bezier(.4,0,.2,1) infinite',
+        gradientPan:    'gradientPan 8s ease-in-out infinite',
       },
       backgroundImage: {
         'scrim-b': 'linear-gradient(to top, rgb(19 16 12 / .82) 0%, rgb(19 16 12 / .45) 34%, transparent 62%)',

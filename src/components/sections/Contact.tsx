@@ -12,8 +12,15 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+const FORM_ENDPOINT =
+  process.env.NEXT_PUBLIC_FORM_ENDPOINT ?? 'https://formspree.io/f/mqaeavbl';
+const CONTACT_EMAIL = 'neelpatel00235@gmail.com';
+
 export function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [mailtoFallback, setMailtoFallback] = useState<string | null>(null);
   const [copiedEmail, setCopiedEmail] = useState(false);
 
   const contactRef = useRef<HTMLElement>(null);
@@ -119,28 +126,67 @@ export function Contact() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     playSound('click');
+    setError(null);
+    setMailtoFallback(null);
+    setIsSubmitting(true);
+
     const form = e.currentTarget;
     const formData = new FormData(form);
 
+    const name = (formData.get('Name') as string) || '';
+    const email = (formData.get('Email') as string) || '';
+    const message = (formData.get('Message') as string) || '';
+
+    // Provider fields
+    const subject = `New enquiry from ${name || 'portfolio visitor'} — neelpatel.com`;
+    formData.set('_subject', subject);
+    if (email) {
+      formData.set('_replyto', email);
+    }
+
+    const mailto =
+      `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}` +
+      `&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\n${message}`.slice(0, 1800))}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
     try {
-      const res = await fetch('https://formspree.io/f/mqaeavbl', {
+      const res = await fetch(FORM_ENDPOINT, {
         method: 'POST',
         body: formData,
         headers: { Accept: 'application/json' },
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         setSubmitted(true);
         playSound('reveal');
         form.reset();
       } else {
-        // Fallback to mailto
-        window.location.href = `mailto:neelpatel00235@gmail.com?subject=Project%20Inquiry&body=${encodeURIComponent(
-          formData.get('Message') as string
-        )}`;
+        const errorData = await res.json().catch(() => null);
+        const errMsg =
+          errorData?.error ||
+          errorData?.errors?.[0]?.message ||
+          'Form endpoint returned an error. Please email me directly:';
+        setError(errMsg);
+        setMailtoFallback(mailto);
       }
-    } catch {
-      window.location.href = 'mailto:neelpatel00235@gmail.com';
+    } catch (err: unknown) {
+      clearTimeout(timeoutId);
+      const isAbort = err instanceof DOMException && err.name === 'AbortError';
+      setError(
+        isAbort
+          ? 'Request timed out after 8 seconds. Please email me directly:'
+          : 'Unable to deliver message via form endpoint. Please email me directly:'
+      );
+      setMailtoFallback(mailto);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -149,7 +195,7 @@ export function Contact() {
       <div className="max-w-shell mx-auto">
         {/* Section Header */}
         <Reveal variant="fade">
-          <div ref={headerRef} className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-6">
+          <div ref={headerRef} className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-6 animate-text-breathe [animation-duration:8.0s] [animation-delay:-0.9s]">
             <span>{CONTACT_COPY.labelNum}</span>
             <span>/</span>
             <span>{CONTACT_COPY.navLabel}</span>
@@ -158,14 +204,14 @@ export function Contact() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
           {/* Left Column: Headline & Direct Endpoints */}
-          <div className="lg:col-span-6 flex flex-col relative z-20">
-            <h2 ref={headlineRef} className="font-display font-black text-huge sm:text-mega text-cream uppercase leading-[0.9] tracking-tight mb-8 font-variation-wonk">
+          <div className="lg:col-span-6 flex flex-col relative z-20 min-w-0">
+            <h2 ref={headlineRef} className="font-taurian text-huge sm:text-mega text-cream uppercase leading-[0.9] tracking-wide mb-8">
               <SplitText text={CONTACT_COPY.headlinePrefix} by="char" />
-              <span className="inline-block font-script text-terracotta lowercase text-[0.92em] sm:text-[1.08em] lg:text-[1.85em] font-normal leading-[0.68] -my-[0.22em] lg:-my-[0.34em] mx-1 sm:mx-2 select-none pointer-events-none relative z-10">
+              <span className="inline-block font-script text-terracotta lowercase text-[1.18em] sm:text-[1.24em] lg:text-[1.32em] font-normal leading-[0.6] -my-[0.16em] sm:-my-[0.2em] lg:-my-[0.24em] mx-1 sm:mx-2 select-none pointer-events-none relative z-10 animate-text-breathe [animation-duration:6.6s] [animation-delay:-2.2s]">
                 {CONTACT_COPY.headlineScript}
               </span>
               <SplitText text={CONTACT_COPY.headlineMiddle} by="char" />
-              <span className="block text-cream relative z-20">
+              <span className="block text-cream relative z-20 -mt-[0.06em]">
                 <SplitText text={CONTACT_COPY.headlineMega} by="char" />
               </span>
             </h2>
@@ -248,7 +294,7 @@ export function Contact() {
                 </div>
               ) : (
                 <form
-                  action="https://formspree.io/f/mqaeavbl"
+                  action={FORM_ENDPOINT}
                   method="POST"
                   onSubmit={handleSubmit}
                   className="flex flex-col gap-6"
@@ -262,6 +308,25 @@ export function Contact() {
                     className="hidden"
                     aria-hidden="true"
                   />
+
+                  {/* Accessible Error / Fallback Region */}
+                  {error && (
+                    <div
+                      role="alert"
+                      aria-live="polite"
+                      className="p-4 rounded-xl bg-wine/20 border border-wine/40 text-cream text-sm flex flex-col gap-2"
+                    >
+                      <p className="font-sans text-cream/90">{error}</p>
+                      {mailtoFallback && (
+                        <a
+                          href={mailtoFallback}
+                          className="font-mono text-xs text-terracotta underline hover:text-kraft transition-colors inline-flex items-center gap-1"
+                        >
+                          <span>Email me directly instead</span> →
+                        </a>
+                      )}
+                    </div>
+                  )}
 
                   {/* Name */}
                   <Reveal variant="up" delay={0.06}>
@@ -319,9 +384,10 @@ export function Contact() {
                     <Magnetic strength={0.25} cursor="Enquire">
                       <button
                         type="submit"
-                        className="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-terracotta hover:bg-[#ff8838] text-ground font-mono text-label font-bold tracking-widest uppercase shadow-xl transition-all duration-200"
+                        disabled={isSubmitting}
+                        className="w-full flex items-center justify-center gap-2 px-8 py-4 rounded-full bg-terracotta hover:bg-[#ff8838] disabled:opacity-60 disabled:cursor-not-allowed text-ground font-mono text-label font-bold tracking-widest uppercase shadow-xl transition-all duration-200"
                       >
-                        <span>{CONTACT_COPY.form.submitText}</span>
+                        <span>{isSubmitting ? 'Sending...' : CONTACT_COPY.form.submitText}</span>
                         <Send className="w-4 h-4" />
                       </button>
                     </Magnetic>

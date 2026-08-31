@@ -173,7 +173,7 @@ export default function ProjectsPage() {
               </div>
             </Reveal>
             <Reveal variant="up" delay={0.05}>
-              <h1 className="font-display font-black text-huge sm:text-mega text-cream uppercase tracking-tight leading-none">
+              <h1 className="font-taurian text-huge sm:text-mega text-cream uppercase tracking-wide leading-none">
                 ALL EDITS
               </h1>
             </Reveal>

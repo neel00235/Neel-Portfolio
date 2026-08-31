@@ -7,6 +7,7 @@ interface VimeoFacadeProps {
   videoId: string;
   title: string;
   autoPlay?: boolean;
+  onReady?: () => void;
   onEnded?: () => void;
   onTimeUpdate?: (percent: number, seconds: number) => void;
   className?: string;
@@ -16,6 +17,7 @@ export function VimeoFacade({
   videoId,
   title,
   autoPlay = true,
+  onReady,
   onEnded,
   onTimeUpdate,
   className = '',
@@ -23,6 +25,7 @@ export function VimeoFacade({
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const soundEnabled = useSound((s) => s.soundEnabled);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [facadeReady, setFacadeReady] = useState(false);
 
   // Send message to Vimeo iframe with exact targetOrigin per B-4
   const post = (method: string, value?: unknown) => {
@@ -60,6 +63,7 @@ export function VimeoFacade({
           if (autoPlay) {
             post('play');
           }
+          onReady?.();
         } else if (data.event === 'finish' || data.event === 'ended') {
           onEnded?.();
         } else if (data.event === 'timeupdate') {
@@ -76,11 +80,11 @@ export function VimeoFacade({
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [videoId, autoPlay, soundEnabled, onEnded, onTimeUpdate]);
+  }, [videoId, autoPlay, soundEnabled, onReady, onEnded, onTimeUpdate]);
 
   const embedUrl = `https://player.vimeo.com/video/${videoId}?api=1&player_id=${videoId}&autoplay=${
     autoPlay ? 1 : 0
-  }&muted=${soundEnabled ? 0 : 1}&loop=1&background=0&controls=0&dnt=1&quality=1080p&app_id=122963`;
+  }&muted=${autoPlay ? 1 : (soundEnabled ? 0 : 1)}&playsinline=1&autopause=0&loop=1&background=0&controls=0&dnt=1&quality=1080p&app_id=122963`;
 
   return (
     <div className={`relative w-full h-full overflow-hidden bg-black ${className}`}>
@@ -88,10 +92,14 @@ export function VimeoFacade({
         ref={iframeRef}
         src={embedUrl}
         title={title}
-        className="absolute inset-0 w-full h-full border-0 pointer-events-auto"
+        onLoad={() => setTimeout(() => setFacadeReady(true), 250)}
+        className={`absolute inset-0 w-full h-full border-0 pointer-events-auto bg-black transition-opacity duration-400 ${
+          facadeReady ? 'opacity-100' : 'opacity-0'
+        }`}
         allow="autoplay; fullscreen; picture-in-picture"
         allowFullScreen
         loading="lazy"
+        style={{ colorScheme: 'dark' }}
       />
     </div>
   );

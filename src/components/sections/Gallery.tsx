@@ -156,9 +156,6 @@ export function Gallery() {
 
   return (
     <section ref={galleryRef} id="gallery" className="relative w-full py-24 px-6 md:px-12 border-b border-line overflow-hidden">
-      {/* Animated square grid background */}
-      <div className="absolute inset-0 pointer-events-none grid-overlay opacity-30 z-0" aria-hidden="true" />
-
       {/* Lightbox Zoom Modal */}
       <VideoModal work={modalWork} onClose={() => setModalWork(null)} />
 
@@ -167,7 +164,7 @@ export function Gallery() {
         <div ref={headerRef} className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-8 border-b border-line-2">
           <div>
             <Reveal variant="fade">
-              <div className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-3">
+              <div className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-3 animate-text-breathe [animation-duration:8.2s] [animation-delay:-1.0s]">
                 <span>{GALLERY_COPY.labelNum}</span>
                 <span>/</span>
                 <span>{GALLERY_COPY.navLabel}</span>
@@ -175,11 +172,11 @@ export function Gallery() {
             </Reveal>
             <div className="flex flex-col">
               <Reveal variant="fade" delay={0.06}>
-                <span className="font-script text-cream/90 text-4xl sm:text-5xl -mb-3 select-none">
+                <span className="font-script text-cream/90 text-4xl sm:text-5xl -mb-3 select-none animate-text-breathe [animation-duration:6.4s] [animation-delay:-2.7s]">
                   {GALLERY_COPY.titleScript}
                 </span>
               </Reveal>
-              <h2 className="font-display font-black text-huge text-cream uppercase tracking-tight font-variation-wonk">
+              <h2 className="font-taurian text-huge text-cream uppercase tracking-wide">
                 <SplitText text={GALLERY_COPY.titleDisplay} by="char" />
               </h2>
             </div>
@@ -285,10 +282,10 @@ export function Gallery() {
         <Reveal variant="up" delay={0.15}>
           <div ref={archiveBandRef} className="w-full p-8 md:p-12 rounded-2xl bg-ground-2 border border-line flex flex-col sm:flex-row items-center justify-between gap-6 shadow-2xl">
             <div className="flex flex-col text-center sm:text-left">
-              <span className="font-mono text-label text-terracotta tracking-widest uppercase mb-1">
+              <span className="font-mono text-label text-terracotta tracking-widest uppercase mb-1 animate-text-breathe [animation-duration:7.4s] [animation-delay:-0.6s]">
                 FULL ARCHIVE
               </span>
-              <h3 className="font-display font-black text-big text-cream uppercase">
+              <h3 className="font-taurian text-big text-cream uppercase tracking-wide">
                 <SplitText text="EXPLORE ALL 52 WORKS" by="char" />
               </h3>
               <p className="font-sans text-sm text-cream/70 mt-1">

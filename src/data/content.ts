@@ -78,6 +78,14 @@ export const WORKS_COPY = {
   conroyHeading: "Conroy Campaign",
   conroyIntro: "One shoot, one grade, ten deliverables — 1 horizontal film + 9 vertical cuts.",
   conroyHint: "CONROY CAMPAIGN — 1 FILM + 9 CUTS · TAP TO FAN",
+  conroyScript: "one shoot, ten cuts",
+  conroyStatA: "1 HERO FILM",
+  conroyStatB: "9 VERTICAL CUTS",
+  conroyStatC: "ONE GRADE",
+  conroyDeckHint: "HOVER A CARD TO PLAY",
+  conroyBigScript: "ten cuts,",
+  conroyBigDisplay: "ONE GRADE",
+  conroyReelsLead: "Nine vertical cuts from the same grade",
 };
 
 export const GALLERY_COPY = {

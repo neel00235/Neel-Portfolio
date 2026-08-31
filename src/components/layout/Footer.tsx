@@ -110,20 +110,20 @@ export function Footer() {
       <div className="max-w-shell mx-auto flex flex-col items-center text-center">
         {/* Star header label */}
         <Reveal variant="fade">
-          <div ref={starRef} className="font-mono text-label text-terracotta tracking-[0.3em] uppercase mb-8">
+          <div ref={starRef} className="font-mono text-label text-terracotta tracking-[0.3em] uppercase mb-8 animate-text-breathe [animation-duration:6.8s] [animation-delay:-1.2s]">
             ✦ {THANKYOU_COPY.labelStar} ✦
           </div>
         </Reveal>
 
         {/* Cursive Name Accent */}
         <Reveal variant="fade" delay={0.06}>
-          <div className="font-script text-cream/90 text-[clamp(3.5rem,8vw,7.5rem)] leading-none -mb-4 select-none">
+          <div className="font-script text-cream/90 text-[clamp(3.5rem,8vw,7.5rem)] leading-none mb-3 sm:-mb-4 pb-2 sm:pb-0 select-none animate-text-breathe [animation-duration:5.8s] [animation-delay:-2.4s]">
             {THANKYOU_COPY.script}
           </div>
         </Reveal>
 
         {/* Display Thank You */}
-        <h2 className="font-display font-black text-mega text-cream uppercase tracking-tight mb-8 font-variation-wonk">
+        <h2 className="font-taurian text-mega text-cream uppercase tracking-wide mb-8 animate-text-float [animation-duration:7.2s] [animation-delay:-1.5s]">
           <SplitText text={THANKYOU_COPY.display} by="char" />
         </h2>
 

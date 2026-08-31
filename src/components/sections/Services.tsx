@@ -49,15 +49,15 @@ export function Services() {
         <div ref={headerRef} className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 pb-8 border-b border-line-2">
           <div>
             <Reveal variant="fade">
-              <div className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-3">
+              <div className="flex items-center gap-3 font-mono text-label text-terracotta tracking-widest uppercase mb-3 animate-text-breathe [animation-duration:8.5s] [animation-delay:-1.7s]">
                 <span>{SERVICES_COPY.labelNum}</span>
                 <span>/</span>
                 <span>{SERVICES_COPY.navLabel}</span>
               </div>
             </Reveal>
-            <h2 className="font-display font-black text-huge text-cream uppercase tracking-tight font-variation-wonk leading-[0.9]">
-              <SplitText text={SERVICES_COPY.titleLead || 'WHAT I'} by="char" />
-              <span className="inline-block font-script text-terracotta lowercase text-[1.12em] font-normal leading-[0.72] -my-[0.18em] ml-3">
+            <h2 className="font-taurian text-huge text-cream uppercase tracking-wide leading-[0.9]">
+              <SplitText text={SERVICES_COPY.titleLead || 'WHAT I'} by="char" className="leading-[0.9]" />
+              <span className="inline-block font-script text-terracotta lowercase text-[1.95em] font-normal leading-[0.62] -my-[0.26em] ml-4 align-baseline select-none animate-text-breathe [animation-duration:6.0s] [animation-delay:-3.3s]">
                 {SERVICES_COPY.titleScript || 'deliver'}
               </span>
             </h2>

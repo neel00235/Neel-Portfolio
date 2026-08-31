@@ -8,6 +8,22 @@ export const fraunces = localFont({
   style: 'normal',
 });
 
+export const bodoniModa = localFont({
+  src: '../../public/fonts/bodoni-moda-900-latin.woff2',
+  variable: '--font-display-alt',
+  display: 'swap',
+  weight: '900',
+  style: 'normal',
+});
+
+export const mbfTaurian = localFont({
+  src: '../../public/fonts/mbf-taurian.otf',
+  variable: '--font-taurian',
+  display: 'swap',
+  weight: '400',
+  style: 'normal',
+});
+
 export const instrumentSerif = localFont({
   src: [
     {

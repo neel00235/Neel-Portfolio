@@ -23,8 +23,12 @@ function AutoplayReel({
   size?: 'lead' | 'flank';
 }) {
   const isLead = size === 'lead';
+  const [reelReady, setReelReady] = useState(false);
+
   const aspectClass =
-    work.aspect === '9:16'
+    work.aspect === '16:9'
+      ? 'aspect-video'
+      : work.aspect === '9:16'
       ? 'aspect-[9/16]'
       : work.aspect === '4:3'
       ? 'aspect-[4/3]'
@@ -55,9 +59,13 @@ function AutoplayReel({
         <iframe
           src={`https://player.vimeo.com/video/${work.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
           title={work.title}
-          className="absolute inset-0 w-full h-full border-0 pointer-events-none z-10 opacity-100"
+          onLoad={() => setTimeout(() => setReelReady(true), 250)}
+          className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 bg-black transition-opacity duration-400 ${
+            reelReady ? 'opacity-100' : 'opacity-0'
+          }`}
           allow="autoplay; fullscreen; picture-in-picture"
           loading="eager"
+          style={{ colorScheme: 'dark' }}
         />
         <div className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
       </div>
@@ -103,6 +111,24 @@ export function Hero() {
           { opacity: 0, y: 50, scale: 0.98 },
           { opacity: 1, y: 0, scale: 1, duration: 1.1, ease: 'power3.out', delay: 0.2 }
         );
+
+        const chars = wordmarkRef.current.querySelectorAll('.wordmark-char');
+        if (chars.length > 0) {
+          gsap.fromTo(
+            chars,
+            { opacity: 0, y: 25 },
+            { opacity: 1, y: 0, duration: 0.8, stagger: 0.05, ease: 'power3.out', delay: 0.25 }
+          );
+        }
+
+        const scriptLine = wordmarkRef.current.querySelector('.wordmark-line-2');
+        if (scriptLine) {
+          gsap.fromTo(
+            scriptLine,
+            { opacity: 0, y: 20 },
+            { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: 0.45 }
+          );
+        }
       }
 
       // Role header in-animation
@@ -236,12 +262,25 @@ export function Hero() {
         <div className="relative w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Column: Typography & Lead Copy */}
           <div className="lg:col-span-7 z-20 flex flex-col order-2 lg:order-1">
-            {/* Display Mega Wordmark - Single Authoritative Title with In-Animation & Contained Line Box */}
+            {/* Display Mega Wordmark - Single Authoritative Title with Bold + Cursive Treatment (Item 3) */}
             <h1
               ref={wordmarkRef}
-              className="font-display font-black text-mega text-cream uppercase tracking-tight leading-[0.98] pb-6 mb-8 drop-shadow-md"
+              aria-label="Neel Patel"
+              className="flex flex-col font-displayAlt font-black text-mega uppercase tracking-normal leading-[0.88] pb-6 mb-10 drop-shadow-md select-none"
             >
-              <SplitText text="NEEL PATEL" by="char" />
+              {/* Line 1: NEEL — gradient lives on each glyph, because bg-clip-text clips to the
+                  element's OWN text node. On the parent it clipped to nothing and the word vanished. */}
+              <span className="wordmark-line-1 relative inline-block">
+                <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">N</span>
+                <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">E</span>
+                <span className="wordmark-char inline-block text-terracotta [-webkit-text-fill-color:#f67c29]">E</span>
+                <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">L</span>
+              </span>
+
+              {/* Line 2: Patel in cursive font-script tucked under NEEL with slight overlap */}
+              <span className="wordmark-line-2 font-script normal-case text-cream text-[1.15em] leading-[0.62] -mt-[0.20em] ml-2 sm:ml-4 tracking-[0.06em] select-none block animate-text-breathe [animation-duration:6.2s]">
+                Patel
+              </span>
             </h1>
 
             {/* Role Header with In-Animation & >=32px Clear Space */}

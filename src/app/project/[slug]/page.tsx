@@ -138,7 +138,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
               <span>{work.discipline}</span>
             </div>
 
-            <h1 className="font-display font-black text-huge text-cream uppercase tracking-tight">
+            <h1 className="font-taurian text-huge text-cream uppercase tracking-wide">
               {work.title}
             </h1>
 
@@ -202,7 +202,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
 
         {/* Related Works Grid */}
         <div className="pt-16">
-          <h3 className="font-display font-bold text-big text-cream uppercase mb-8">
+          <h3 className="font-taurian text-big text-cream uppercase tracking-wide mb-8">
             RELATED EDITS
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
