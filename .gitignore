@@ -16,3 +16,6 @@ yarn-error.log*
 # Environment files
 .env*.local
 .env.local
+
+# Local Lighthouse / measurement output. Kept on disk, never committed.
+scratch*.json
