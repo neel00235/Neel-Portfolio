@@ -19,6 +19,7 @@ interface VideoFrameProps {
   tone?: string;
   priority?: boolean;
   autoPlayLead?: boolean;
+  bare?: boolean;
   className?: string;
 }
 
@@ -31,6 +32,7 @@ export function VideoFrame({
   tone,
   priority = false,
   autoPlayLead = false,
+  bare = false,
   className = '',
 }: VideoFrameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -87,10 +89,63 @@ export function VideoFrame({
 
   // Sync with global video registry
   useEffect(() => {
-    if (activeFullId && activeFullId !== id && isPlayingFull) {
+    const currentActive = useVideoRegistry.getState().activeFullId;
+    if (currentActive && currentActive !== id && isPlayingFull) {
       setIsPlayingFull(false);
     }
   }, [activeFullId, id, isPlayingFull]);
+
+  // Clean up active full player on unmount
+  useEffect(() => {
+    return () => {
+      if (useVideoRegistry.getState().activeFullId === id) {
+        useVideoRegistry.getState().stopFull(id);
+      }
+    };
+  }, [id]);
+
+  // PostMessage helper for hover iframe
+  const postHover = (method: string, value?: unknown) => {
+    if (!hoverIframeRef.current?.contentWindow) return;
+    const msg = JSON.stringify({ method, value });
+    hoverIframeRef.current.contentWindow.postMessage(msg, 'https://player.vimeo.com');
+  };
+
+  // Hover preview postMessage listener with 6000ms watchdog
+  useEffect(() => {
+    if (!hoverMounted) return;
+
+    const watchdogTimer = setTimeout(() => {
+      // Stay on poster if no play event arrives
+    }, 6000);
+
+    const handleHoverMessage = (e: MessageEvent) => {
+      if (e.origin !== 'https://player.vimeo.com') return;
+
+      try {
+        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (!data) return;
+
+        if (data.player_id && String(data.player_id) !== String(id)) return;
+
+        if (data.event === 'ready') {
+          postHover('addEventListener', 'play');
+          postHover('addEventListener', 'playing');
+        } else if (data.event === 'play' || data.event === 'playing') {
+          clearTimeout(watchdogTimer);
+          setHoverReady(true);
+        }
+      } catch {
+        // Non-JSON message
+      }
+    };
+
+    window.addEventListener('message', handleHoverMessage);
+    return () => {
+      clearTimeout(watchdogTimer);
+      window.removeEventListener('message', handleHoverMessage);
+    };
+  }, [hoverMounted, id]);
 
   // Teardown hover preview helper
   const teardownHover = () => {
@@ -211,6 +266,8 @@ export function VideoFrame({
     }
   };
 
+  const isBare = bare || isFullscreen;
+
   return (
     <div
       ref={containerRef}
@@ -220,45 +277,56 @@ export function VideoFrame({
       onMouseLeave={handlePointerLeave}
       style={isFullscreen ? { backgroundColor: '#000' } : undefined}
       className={`group relative overflow-hidden ${
-        isFullscreen
-          ? '!rounded-none !border-0 bg-black !aspect-auto'
+        isBare
+          ? '!rounded-none !border-0 bg-black'
           : 'rounded-lg bg-ground-2 border border-line-2 hover:border-terracotta/60 hover:-translate-y-1.5 hover:shadow-[0_16px_36px_-8px_rgba(246,124,41,0.18)]'
-      } select-none transition-all duration-500 ease-out cursor-pointer ${getAspectClass(
-        aspect
-      )} ${className}`}
+      } ${
+        isFullscreen ? '!aspect-auto' : getAspectClass(aspect)
+      } select-none transition-all duration-500 ease-out cursor-pointer ${className}`}
       data-cursor={isPlayingFull ? 'Sound' : 'Play'}
       onClick={() => {
         if (!isPlayingFull) handlePlayClick();
       }}
     >
-      {/* Tier 1: Poster Image + Blur-up LQIP (Poster never unmounts per R-30 Rule 4) */}
+      {/* 1. LQIP blur fallback - always present beneath everything */}
+      {lqip && (
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none filter blur-sm scale-105"
+          style={{ backgroundImage: `url("${lqip}")` }}
+        />
+      )}
+
+      {/* 2. Poster Image (never unmounted, fades only when hover is ready) */}
+      <div
+        className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-[260ms] ease-io ${
+          hoverReady ? 'opacity-0' : 'opacity-100'
+        }`}
+      >
+        <Image
+          src={`/posters/${id}.webp`}
+          alt={title}
+          fill
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          priority={priority}
+          placeholder={lqip ? 'blur' : 'empty'}
+          blurDataURL={lqip}
+          className={`object-cover w-full h-full transition-transform duration-500 ease-out ${
+            isBare ? '' : 'group-hover:scale-105'
+          }`}
+        />
+      </div>
+
+      {/* Tier 1 Non-Playing Overlays */}
       {!isPlayingFull && (
         <>
-          <div
-            className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-[260ms] ease-io ${
-              hoverReady ? 'opacity-0' : 'opacity-100'
-            }`}
-          >
-            <Image
-              src={`/posters/${id}.webp`}
-              alt={title}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              priority={priority}
-              placeholder={lqip ? 'blur' : 'empty'}
-              blurDataURL={lqip}
-              className="object-cover w-full h-full transition-transform duration-500 ease-out group-hover:scale-105"
-            />
-          </div>
-
           {/* R-30: Autoplay on hover iframe (Mounted after 140ms dwell) */}
           {hoverMounted && (
             <div className="absolute inset-0 z-10 overflow-hidden pointer-events-none">
               <iframe
                 ref={hoverIframeRef}
-                src={`https://player.vimeo.com/video/${id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
+                src={`https://player.vimeo.com/video/${id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p&api=1&player_id=${id}`}
                 title={title}
-                onLoad={() => setTimeout(() => setHoverReady(true), 250)}
                 className={`w-full h-full border-0 pointer-events-none bg-black transition-opacity duration-400 ${
                   hoverReady ? 'opacity-100' : 'opacity-0'
                 }`}
@@ -291,7 +359,7 @@ export function VideoFrame({
 
       {/* Tier 2: Full interactive player via clean VimeoFacade */}
       {isPlayingFull && (
-        <>
+        <div className="absolute inset-0 z-20">
           <VimeoFacade
             videoId={id}
             title={title}
@@ -318,7 +386,7 @@ export function VideoFrame({
             duration={duration}
             progress={progress}
           />
-        </>
+        </div>
       )}
     </div>
   );

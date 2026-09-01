@@ -4,20 +4,24 @@ interface VideoRegistryState {
   activeFullId: string | null;
   activePreviewId: string | null;
   instantiatedIds: string[];
+  activeAmbientIds: string[];
   playFull: (id: string) => void;
   stopFull: (id: string) => void;
   playPreview: (id: string) => void;
   stopPreview: (id: string) => void;
   registerInstance: (id: string) => void;
   unregisterInstance: (id: string) => void;
+  claimAmbientSlot: (instanceKey: string, maxSlots?: number) => boolean;
+  releaseAmbientSlot: (instanceKey: string) => void;
 }
 
 const MAX_INSTANCES = 3;
 
-export const useVideoRegistry = create<VideoRegistryState>((set) => ({
+export const useVideoRegistry = create<VideoRegistryState>((set, get) => ({
   activeFullId: null,
   activePreviewId: null,
   instantiatedIds: [],
+  activeAmbientIds: [],
 
   playFull: (id: string) => set((state) => {
     // If playing full, stop any preview
@@ -56,4 +60,27 @@ export const useVideoRegistry = create<VideoRegistryState>((set) => ({
     instantiatedIds: state.instantiatedIds.filter(x => x !== id),
     activeFullId: state.activeFullId === id ? null : state.activeFullId,
   })),
+
+  claimAmbientSlot: (instanceKey: string, maxSlots?: number) => {
+    const defaultMax = typeof window !== 'undefined' && window.innerWidth <= 390 ? 3 : 4;
+    const limit = maxSlots ?? defaultMax;
+    const current = get().activeAmbientIds;
+
+    if (current.includes(instanceKey)) {
+      return true;
+    }
+
+    if (current.length < limit) {
+      set({ activeAmbientIds: [...current, instanceKey] });
+      return true;
+    }
+
+    return false;
+  },
+
+  releaseAmbientSlot: (instanceKey: string) => {
+    set((state) => ({
+      activeAmbientIds: state.activeAmbientIds.filter((k) => k !== instanceKey),
+    }));
+  },
 }));

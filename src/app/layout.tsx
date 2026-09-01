@@ -6,12 +6,14 @@ import {
   mbfTaurian,
   instrumentSerif,
   ephesis,
+  pinyonScript,
   manrope,
   jetbrainsMono,
 } from '@/lib/fonts';
 import { Header } from '@/components/layout/Header';
 import { MagneticCursor } from '@/components/cursor/MagneticCursor';
 import { SmoothScroller } from '@/components/scroller/SmoothScroller';
+import { LightboxProvider } from '@/components/video/LightboxProvider';
 import { ToneFieldLazy } from '@/components/canvas/ToneFieldLazy';
 import { ToneBridge } from '@/components/system/ToneBridge';
 import { META } from '@/data/content';
@@ -66,7 +68,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${fraunces.variable} ${bodoniModa.variable} ${mbfTaurian.variable} ${instrumentSerif.variable} ${ephesis.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
+      className={`${fraunces.variable} ${bodoniModa.variable} ${mbfTaurian.variable} ${instrumentSerif.variable} ${ephesis.variable} ${pinyonScript.variable} ${manrope.variable} ${jetbrainsMono.variable}`}
     >
       <head>
         <link rel="preconnect" href="https://player.vimeo.com" />
@@ -101,10 +103,12 @@ export default function RootLayout({
         <MagneticCursor />
 
         {/* Smooth Scroll Container with Header and Page Content */}
-        <SmoothScroller>
-          <Header />
-          <main className="relative z-10">{children}</main>
-        </SmoothScroller>
+        <LightboxProvider>
+          <SmoothScroller>
+            <Header />
+            <main className="relative z-10">{children}</main>
+          </SmoothScroller>
+        </LightboxProvider>
       </body>
     </html>
   );

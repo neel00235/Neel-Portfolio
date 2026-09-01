@@ -43,6 +43,11 @@ export function VimeoFacade({
 
   // Handle messages from Vimeo player with origin validation per B-4
   useEffect(() => {
+    // 6000ms watchdog: if no play event arrives within 6000 ms, stay on poster forever
+    const watchdogTimer = setTimeout(() => {
+      // Do not force reveal if playback didn't start
+    }, 6000);
+
     const handleMessage = (e: MessageEvent) => {
       if (e.origin !== 'https://player.vimeo.com') return;
 
@@ -56,6 +61,7 @@ export function VimeoFacade({
         if (data.event === 'ready') {
           setIsLoaded(true);
           post('addEventListener', 'play');
+          post('addEventListener', 'playing');
           post('addEventListener', 'pause');
           post('addEventListener', 'finish');
           post('addEventListener', 'timeupdate');
@@ -64,6 +70,9 @@ export function VimeoFacade({
             post('play');
           }
           onReady?.();
+        } else if (data.event === 'play' || data.event === 'playing') {
+          clearTimeout(watchdogTimer);
+          setFacadeReady(true);
         } else if (data.event === 'finish' || data.event === 'ended') {
           onEnded?.();
         } else if (data.event === 'timeupdate') {
@@ -78,21 +87,30 @@ export function VimeoFacade({
 
     window.addEventListener('message', handleMessage);
     return () => {
+      clearTimeout(watchdogTimer);
       window.removeEventListener('message', handleMessage);
     };
   }, [videoId, autoPlay, soundEnabled, onReady, onEnded, onTimeUpdate]);
+
+  const handleIframeLoad = () => {
+    post('addEventListener', 'play');
+    post('addEventListener', 'playing');
+    if (autoPlay) {
+      post('play');
+    }
+  };
 
   const embedUrl = `https://player.vimeo.com/video/${videoId}?api=1&player_id=${videoId}&autoplay=${
     autoPlay ? 1 : 0
   }&muted=${autoPlay ? 1 : (soundEnabled ? 0 : 1)}&playsinline=1&autopause=0&loop=1&background=0&controls=0&dnt=1&quality=1080p&app_id=122963`;
 
   return (
-    <div className={`relative w-full h-full overflow-hidden bg-black ${className}`}>
+    <div className={`relative w-full h-full overflow-hidden bg-transparent ${className}`}>
       <iframe
         ref={iframeRef}
         src={embedUrl}
         title={title}
-        onLoad={() => setTimeout(() => setFacadeReady(true), 250)}
+        onLoad={handleIframeLoad}
         className={`absolute inset-0 w-full h-full border-0 pointer-events-auto bg-black transition-opacity duration-400 ${
           facadeReady ? 'opacity-100' : 'opacity-0'
         }`}

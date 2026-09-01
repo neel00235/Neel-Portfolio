@@ -25,6 +25,7 @@ export function VideoModal({ work, onClose }: VideoModalProps) {
   const [mounted, setMounted] = useState(false);
   const lenis = useLenis();
   const prevFocusRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -45,6 +46,24 @@ export function VideoModal({ work, onClose }: VideoModalProps) {
       if (e.key === 'Escape') {
         playSound('click');
         handleClose();
+        return;
+      }
+
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusable = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length > 0) {
+          const first = focusable[0];
+          const last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     };
 
@@ -84,6 +103,7 @@ export function VideoModal({ work, onClose }: VideoModalProps) {
     >
       {/* Modal Dialog */}
       <div
+        ref={dialogRef}
         className={`relative w-full max-w-5xl ${
           isVertical ? 'max-w-md' : 'max-w-5xl'
         } bg-ground-2 border border-line rounded-2xl overflow-hidden shadow-2xl transition-transform duration-300 scale-100 flex flex-col`}
@@ -113,18 +133,31 @@ export function VideoModal({ work, onClose }: VideoModalProps) {
         </div>
 
         {/* Big Zoomed Video Frame */}
-        <div className="w-full bg-black flex items-center justify-center">
-          <VideoFrame
-            id={work.id}
-            title={work.title}
-            slug={work.slug}
-            aspect={work.aspect}
-            duration={work.duration}
-            tone={work.tone}
-            priority={true}
-            autoPlayLead={true}
-            className="w-full max-h-[75vh]"
-          />
+        <div className="w-full bg-black flex items-center justify-center overflow-hidden">
+          <div
+            className={`w-full ${
+              isVertical
+                ? 'max-w-[calc(75vh*9/16)] aspect-[9/16]'
+                : work.aspect === '4:3'
+                ? 'max-w-[calc(75vh*4/3)] aspect-[4/3]'
+                : work.aspect === '1:1'
+                ? 'max-w-[75vh] aspect-square'
+                : 'max-w-[calc(75vh*16/9)] aspect-video'
+            }`}
+          >
+            <VideoFrame
+              id={work.id}
+              title={work.title}
+              slug={work.slug}
+              aspect={work.aspect}
+              duration={work.duration}
+              tone={work.tone}
+              priority={true}
+              autoPlayLead={true}
+              bare={true}
+              className="w-full h-full"
+            />
+          </div>
         </div>
       </div>
     </div>

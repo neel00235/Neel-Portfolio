@@ -155,12 +155,44 @@ export function Contact() {
     const timeoutId = setTimeout(() => controller.abort(), 8000);
 
     try {
-      const res = await fetch(FORM_ENDPOINT, {
-        method: 'POST',
-        body: formData,
-        headers: { Accept: 'application/json' },
-        signal: controller.signal,
-      });
+      let res: Response | null = null;
+      let usedSmtp = false;
+
+      // 8c: Try server-side /api/contact first
+      try {
+        const apiRes = await fetch('/api/contact', {
+          method: 'POST',
+          body: formData,
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+
+        // If route does not exist (static host: 404 / 405), fall through to FORM_ENDPOINT
+        if (apiRes.status === 404 || apiRes.status === 405) {
+          usedSmtp = false;
+        } else {
+          res = apiRes;
+          usedSmtp = true;
+        }
+      } catch (apiErr: unknown) {
+        // If aborted, let outer catch handle it
+        if (apiErr instanceof DOMException && apiErr.name === 'AbortError') {
+          throw apiErr;
+        }
+        // On network error or failure reaching /api/contact, fall through to FORM_ENDPOINT
+        usedSmtp = false;
+      }
+
+      // Fallback: FORM_ENDPOINT (Formspree or custom endpoint)
+      if (!usedSmtp || !res) {
+        res = await fetch(FORM_ENDPOINT, {
+          method: 'POST',
+          body: formData,
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+      }
+
       clearTimeout(timeoutId);
 
       if (res.ok) {
@@ -205,14 +237,17 @@ export function Contact() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
           {/* Left Column: Headline & Direct Endpoints */}
           <div className="lg:col-span-6 flex flex-col relative z-20 min-w-0">
-            <h2 ref={headlineRef} className="font-taurian text-huge sm:text-mega text-cream uppercase leading-[0.9] tracking-wide mb-8">
-              <SplitText text={CONTACT_COPY.headlinePrefix} by="char" />
-              <span className="inline-block font-script text-terracotta lowercase text-[1.18em] sm:text-[1.24em] lg:text-[1.32em] font-normal leading-[0.6] -my-[0.16em] sm:-my-[0.2em] lg:-my-[0.24em] mx-1 sm:mx-2 select-none pointer-events-none relative z-10 animate-text-breathe [animation-duration:6.6s] [animation-delay:-2.2s]">
+            <h2
+              ref={headlineRef}
+              className="font-taurian text-[clamp(2.2rem,8vw,7.5rem)] text-cream uppercase leading-[0.9] tracking-wide mb-8 [&_.whitespace-nowrap:has(.split-mask)]:block [&_.whitespace-nowrap:not(:has(.split-mask))]:hidden"
+            >
+              <SplitText text={CONTACT_COPY.headlinePrefix} by="char" className="!block" />
+              <span className="block font-script text-terracotta lowercase text-[1.2em] font-normal leading-[0.75] select-none pointer-events-none relative z-10 animate-text-breathe [animation-duration:6.6s] [animation-delay:-2.2s]">
                 {CONTACT_COPY.headlineScript}
               </span>
-              <SplitText text={CONTACT_COPY.headlineMiddle} by="char" />
-              <span className="block text-cream relative z-20 -mt-[0.06em]">
-                <SplitText text={CONTACT_COPY.headlineMega} by="char" />
+              <SplitText text={CONTACT_COPY.headlineMiddle} by="char" className="!block" />
+              <span className="block text-cream relative z-20">
+                <SplitText text={CONTACT_COPY.headlineMega} by="char" className="!block" />
               </span>
             </h2>
 

@@ -6,6 +6,7 @@ import { Play, ArrowUpRight } from 'lucide-react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { HERO } from '@/data/content';
+import { AmbientReel } from '@/components/video/AmbientReel';
 
 gsap.registerPlugin(ScrollTrigger);
 import { STATS, ALL_WORKS, type Work } from '@/data/portfolio.generated';
@@ -23,18 +24,6 @@ function AutoplayReel({
   size?: 'lead' | 'flank';
 }) {
   const isLead = size === 'lead';
-  const [reelReady, setReelReady] = useState(false);
-
-  const aspectClass =
-    work.aspect === '16:9'
-      ? 'aspect-video'
-      : work.aspect === '9:16'
-      ? 'aspect-[9/16]'
-      : work.aspect === '4:3'
-      ? 'aspect-[4/3]'
-      : work.aspect === '1:1'
-      ? 'aspect-square'
-      : 'aspect-video';
 
   const sizeClass = isLead
     ? 'w-full lg:w-[560px] max-w-[580px]'
@@ -44,30 +33,18 @@ function AutoplayReel({
 
   return (
     <div className={`flex flex-col gap-2.5 group ${sizeClass} mx-auto`}>
-      <div
-        className={`relative w-full ${aspectClass} rounded-xl overflow-hidden border border-line-2 hover:border-terracotta transition-[transform,border-color,box-shadow] duration-400 shadow-xl bg-black hover:-translate-y-2`}
-      >
-        {/* Real poster frame sibling behind iframe (Defect 4) */}
-        <Image
-          src={`/posters/${work.id}.webp`}
-          alt={work.title}
-          fill
-          sizes={isLead ? '(max-width: 768px) 100vw, 580px' : '(max-width: 768px) 100vw, 460px'}
-          className="object-cover pointer-events-none"
-        />
-
-        <iframe
-          src={`https://player.vimeo.com/video/${work.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
+      <div className="relative w-full rounded-xl overflow-hidden border border-line-2 hover:border-terracotta transition-[transform,border-color,box-shadow] duration-400 shadow-xl bg-black hover:-translate-y-2">
+        <AmbientReel
+          id={work.id}
           title={work.title}
-          onLoad={() => setTimeout(() => setReelReady(true), 250)}
-          className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 bg-black transition-opacity duration-400 ${
-            reelReady ? 'opacity-100' : 'opacity-0'
-          }`}
-          allow="autoplay; fullscreen; picture-in-picture"
-          loading="eager"
-          style={{ colorScheme: 'dark' }}
+          slug={work.slug}
+          aspect={work.aspect}
+          duration={work.duration}
+          tone={work.tone}
+          quality="720p"
+          priority={false}
+          sizes={isLead ? '(max-width: 768px) 100vw, 580px' : '(max-width: 768px) 100vw, 460px'}
         />
-        <div className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
       </div>
 
       {/* Scaled caption row with truncate and min-w-0 */}
@@ -266,20 +243,21 @@ export function Hero() {
             <h1
               ref={wordmarkRef}
               aria-label="Neel Patel"
-              className="flex flex-col font-displayAlt font-black text-mega uppercase tracking-normal leading-[0.88] pb-6 mb-10 drop-shadow-md select-none"
+              className="flex flex-col text-mega uppercase tracking-normal leading-[1.0] pb-6 mb-10 drop-shadow-md select-none overflow-visible"
             >
-              {/* Line 1: NEEL — gradient lives on each glyph, because bg-clip-text clips to the
-                  element's OWN text node. On the parent it clipped to nothing and the word vanished. */}
-              <span className="wordmark-line-1 relative inline-block">
-                <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">N</span>
-                <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">E</span>
-                <span className="wordmark-char inline-block text-terracotta [-webkit-text-fill-color:#f67c29]">E</span>
-                <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">L</span>
+              {/* Line 1: NEEL in MBF Taurian — leading-[1.02], pb-[0.12em] and overflow-visible ensure glyph serifs/descenders are never clipped */}
+              <span className="wordmark-line-1 relative inline-block font-taurian font-normal tracking-tight leading-[1.02] pb-[0.12em] overflow-visible">
+                <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none leading-[1.02] pb-[0.12em] overflow-visible">N</span>
+                <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none leading-[1.02] pb-[0.12em] overflow-visible">E</span>
+                <span className="wordmark-char inline-block text-terracotta [-webkit-text-fill-color:#f67c29] leading-[1.02] pb-[0.12em] overflow-visible">E</span>
+                <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none leading-[1.02] pb-[0.12em] overflow-visible">L</span>
               </span>
 
-              {/* Line 2: Patel in cursive font-script tucked under NEEL with slight overlap */}
-              <span className="wordmark-line-2 font-script normal-case text-cream text-[1.15em] leading-[0.62] -mt-[0.20em] ml-2 sm:ml-4 tracking-[0.06em] select-none block animate-text-breathe [animation-duration:6.2s]">
-                Patel
+              {/* Line 2: Patel in flowing font-cursive with animated luxury gradient and prominent size */}
+              <span className="wordmark-line-2 font-cursive normal-case text-[1.42em] leading-[0.85] -mt-[0.08em] ml-2 sm:ml-4 tracking-[0.04em] select-none block overflow-visible pb-3">
+                <span className="inline-block bg-gradient-to-r from-cream via-terracotta to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">
+                  Patel
+                </span>
               </span>
             </h1>
 

@@ -7,6 +7,7 @@ import gsap from 'gsap';
 import { Flip } from 'gsap/Flip';
 import { UNIQUE_WORKS, type Work } from '@/data/portfolio.generated';
 import { VideoFrame } from '@/components/video/VideoFrame';
+import { useLightbox } from '@/components/video/LightboxProvider';
 import { Magnetic } from '@/components/cursor/Magnetic';
 import { playSound } from '@/lib/sound';
 import { Footer } from '@/components/layout/Footer';
@@ -17,6 +18,7 @@ if (typeof window !== 'undefined') {
 }
 
 function ProjectCard({ work }: { work: Work }) {
+  const { open } = useLightbox();
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -51,6 +53,11 @@ function ProjectCard({ work }: { work: Work }) {
     return () => observer.disconnect();
   }, []);
 
+  const handleOpen = () => {
+    playSound('click');
+    open(work);
+  };
+
   return (
     <div
       ref={cardRef}
@@ -58,14 +65,29 @@ function ProjectCard({ work }: { work: Work }) {
       className="project-card flex flex-col gap-3 group"
       style={{ contentVisibility: 'auto', containIntrinsicSize: '380px' }}
     >
-      <VideoFrame
-        id={work.id}
-        title={work.title}
-        slug={work.slug}
-        aspect={work.aspect}
-        duration={work.duration}
-        tone={work.tone}
-      />
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={`Open ${work.title} video`}
+        data-cursor="Play"
+        onClick={handleOpen}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            handleOpen();
+          }
+        }}
+        className="cursor-pointer relative rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-[transform,border-color,box-shadow] duration-300 shadow-lg hover:-translate-y-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta"
+      >
+        <VideoFrame
+          id={work.id}
+          title={work.title}
+          slug={work.slug}
+          aspect={work.aspect}
+          duration={work.duration}
+          tone={work.tone}
+        />
+      </div>
       <div className="flex items-center justify-between font-mono text-label">
         <Link
           href={`/project/${work.slug}`}

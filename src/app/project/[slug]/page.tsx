@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { UNIQUE_WORKS, SECTIONS, WORKS_BY_SLUG } from '@/data/portfolio.generated';
 import { VideoFrame } from '@/components/video/VideoFrame';
+import { RelatedWorkCard } from '@/components/video/RelatedWorkCard';
 import { Footer } from '@/components/layout/Footer';
 import { META } from '@/data/content';
 
@@ -207,25 +208,7 @@ export default async function ProjectPage({ params }: ProjectPageProps) {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
             {relatedWorks.map((rw) => (
-              <div key={rw.id} className="flex flex-col gap-3 group">
-                <VideoFrame
-                  id={rw.id}
-                  title={rw.title}
-                  slug={rw.slug}
-                  aspect={rw.aspect}
-                  duration={rw.duration}
-                  tone={rw.tone}
-                />
-                <div className="flex items-center justify-between font-mono text-label">
-                  <Link
-                    href={`/project/${rw.slug}`}
-                    className="text-cream group-hover:text-terracotta transition-colors truncate pr-2 font-medium"
-                  >
-                    {rw.title}
-                  </Link>
-                  <span className="text-muted text-[0.64rem]">{rw.discipline}</span>
-                </div>
-              </div>
+              <RelatedWorkCard key={rw.id} work={rw} />
             ))}
           </div>
         </div>

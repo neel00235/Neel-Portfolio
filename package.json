@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:server": "cross-env BUILD_TARGET=server next build",
     "start": "npx serve out",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -22,6 +23,7 @@
     "lenis": "1.1.18",
     "lucide-react": "0.469.0",
     "next": "15.1.6",
+    "nodemailer": "^9.1.0",
     "ogl": "1.0.11",
     "react": "19.0.0",
     "react-dom": "19.0.0",
@@ -30,9 +32,11 @@
   },
   "devDependencies": {
     "@types/node": "22.10.5",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "19.0.7",
     "@types/react-dom": "19.0.3",
     "autoprefixer": "10.4.20",
+    "cross-env": "^10.1.0",
     "eslint": "9.18.0",
     "eslint-config-next": "15.1.6",
     "postcss": "8.4.49",

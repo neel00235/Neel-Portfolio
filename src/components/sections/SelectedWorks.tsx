@@ -6,11 +6,13 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { WORKS_COPY } from '@/data/content';
 import { SECTIONS, UNIQUE_WORKS, type Work } from '@/data/portfolio.generated';
-import { VideoFrame } from '@/components/video/VideoFrame';
-import { VideoModal, ModalWork } from '@/components/video/VideoModal';
+import { AmbientReel } from '@/components/video/AmbientReel';
+import { useLightbox } from '@/components/video/LightboxProvider';
+import type { ModalWork } from '@/components/video/VideoModal';
 import { playSound } from '@/lib/sound';
 import { Reveal } from '@/components/motion/Reveal';
 import { SplitText } from '@/components/motion/SplitText';
+import lqipData from '@/data/lqip.json';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -25,37 +27,25 @@ const RATIO: Record<string, number> = {
 };
 
 function MarqueeReelCard({ work }: { work: Work }) {
-  const [reelReady, setReelReady] = useState(false);
   const ratio = RATIO[work.aspect] ?? 16 / 9;
 
   return (
     <div
       className="flex-shrink-0 flex flex-col gap-3 group select-none"
-      style={{ width: `${Math.round(RAIL_H * ratio)}px` }}
+      style={{ width: `calc(var(--rail-h, 288px) * ${ratio.toFixed(6)})` }}
     >
       <div className="relative rounded-lg overflow-hidden border border-line-2 group-hover:border-terracotta/70 transition-[transform,border-color,box-shadow] duration-300 shadow-xl group-hover:scale-[1.06] group-hover:z-20 bg-black">
-        <div className="relative w-full" style={{ height: `${RAIL_H}px` }}>
-          {/* Real poster frame sibling behind iframe (Defect 4) */}
-          <Image
-            src={`/posters/${work.id}.webp`}
-            alt={work.title}
-            fill
-            sizes="(max-width: 768px) 320px, 384px"
-            className="object-cover pointer-events-none"
-          />
-          {/* Dedicated always-on autoplay Vimeo iframe (Item 5) */}
-          <iframe
-            src={`https://player.vimeo.com/video/${work.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
+        <div className="relative w-full" style={{ height: 'var(--rail-h, 288px)' }}>
+          <AmbientReel
+            id={work.id}
             title={work.title}
-            onLoad={() => setTimeout(() => setReelReady(true), 250)}
-            className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 bg-black transition-opacity duration-400 ${
-              reelReady ? 'opacity-100' : 'opacity-0'
-            }`}
-            allow="autoplay; fullscreen; picture-in-picture"
-            loading="lazy"
-            style={{ colorScheme: 'dark' }}
+            slug={work.slug}
+            aspect={work.aspect}
+            duration={work.duration}
+            tone={work.tone}
+            quality="720p"
+            sizes="(max-width: 768px) 320px, 384px"
           />
-          <div className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
         </div>
       </div>
 
@@ -84,12 +74,11 @@ const FAN_ANGLES = [-28, -21, -14, -7, 0, 7, 14, 21, 28];
 const FAN_Y_OFFSETS = [24, 14, 6, 2, 0, 2, 6, 14, 24];
 
 export function SelectedWorks() {
-  const [modalWork, setModalWork] = useState<ModalWork | null>(null);
+  const { open } = useLightbox();
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const [deckOpen, setDeckOpen] = useState(false);
+  const [railRunning, setRailRunning] = useState(false);
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
-  const [conroyHeroReady, setConroyHeroReady] = useState(false);
-  const [hoveredReelReady, setHoveredReelReady] = useState(false);
 
   const worksRef = useRef<HTMLElement>(null);
   const worksHeaderRef = useRef<HTMLDivElement>(null);
@@ -197,7 +186,17 @@ export function SelectedWorks() {
         );
       }
 
-      // 4. Conroy Playing-Card Deck opening trigger (Item 4b)
+      // 4. Timeline Selections rail marquee start trigger (Item 4b)
+      if (railContainerRef.current) {
+        ScrollTrigger.create({
+          trigger: railContainerRef.current,
+          start: 'top bottom',
+          once: true,
+          onEnter: () => setRailRunning(true),
+        });
+      }
+
+      // 5. Conroy Playing-Card Deck opening trigger (Item 4b)
       if (fanContainerRef.current) {
         ScrollTrigger.create({
           trigger: fanContainerRef.current,
@@ -213,14 +212,11 @@ export function SelectedWorks() {
 
   const handleCardClick = (work: ModalWork) => {
     playSound('click');
-    setModalWork(work);
+    open(work);
   };
 
   return (
     <section ref={worksRef} id="works" className="relative w-full py-24 px-6 md:px-12 border-b border-line overflow-hidden">
-      {/* Lightbox Zoom Video Player Modal */}
-      <VideoModal work={modalWork} onClose={() => setModalWork(null)} />
-
       <div className="max-w-shell mx-auto relative z-10">
         {/* Section Header with Cursive Title & Bold Subtitle */}
         <div ref={worksHeaderRef} className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 pb-8 border-b border-line-2">
@@ -251,7 +247,7 @@ export function SelectedWorks() {
         {/* 1. The Lead Film (Absolute Cinema Flagship) */}
         <div className="mb-20">
           <Reveal variant="up">
-            <div className="flex items-center justify-between font-mono text-label text-muted tracking-widest uppercase mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 font-mono text-label text-muted tracking-widest uppercase mb-4">
               <span className="text-terracotta font-semibold">✦ {WORKS_COPY.leadLabel} · ABSOLUTE CINEMA</span>
               <span>
                 {leadFilm.title} · {leadFilm.aspect} · {leadFilm.duration}S
@@ -261,7 +257,7 @@ export function SelectedWorks() {
 
           <Reveal variant="scale" delay={0.12} className="w-full">
             <div ref={leadFilmRef} className="w-full rounded-xl overflow-hidden border border-line shadow-2xl transition-[border-color,box-shadow] duration-500 hover:border-terracotta/60 hover:shadow-terracotta/10">
-              <VideoFrame
+              <AmbientReel
                 id={leadFilm.id}
                 title={leadFilm.title}
                 slug={leadFilm.slug}
@@ -269,7 +265,8 @@ export function SelectedWorks() {
                 duration={leadFilm.duration}
                 tone={leadFilm.tone}
                 priority={true}
-                autoPlayLead={true}
+                signalsLeadReady={true}
+                quality="1080p"
                 className="w-full"
               />
             </div>
@@ -292,11 +289,15 @@ export function SelectedWorks() {
           </Reveal>
 
           {/* Continuous Right-to-Left Marquee — Two Offset Rows */}
-          <div className="relative w-full overflow-hidden py-8 -mx-6 md:-mx-12 px-6 md:px-12">
+          <div className="marquee-rail relative w-full overflow-hidden py-8 -mx-6 md:-mx-12 px-6 md:px-12">
             {/* Row A */}
             <div
               className={`flex gap-6 w-max ${
-                prefersReducedMotion ? '' : 'animate-marquee-slow'
+                prefersReducedMotion
+                  ? ''
+                  : `animate-marquee-slow [animation-duration:48s] ${
+                      railRunning ? '[animation-play-state:running]' : '[animation-play-state:paused]'
+                    }`
               }`}
             >
               {railRowA.map((work) => (
@@ -309,10 +310,12 @@ export function SelectedWorks() {
 
             {/* Row B */}
             <div
-              className={`flex gap-6 w-max mt-6 ml-[-140px] ${
+              className={`flex gap-6 w-max mt-6 ${
                 prefersReducedMotion
                   ? ''
-                  : 'animate-marquee-slow [animation-duration:88s]'
+                  : `animate-marquee-slow [animation-duration:56s] [animation-delay:-18s] ${
+                      railRunning ? '[animation-play-state:running]' : '[animation-play-state:paused]'
+                    }`
               }`}
             >
               {railRowB.map((work) => (
@@ -362,27 +365,17 @@ export function SelectedWorks() {
           {/* 6b. Clean Foreground Hero Film Frame (matching lead film width) */}
           <Reveal variant="scale" delay={0.12} className="w-full mb-16">
             <div className="w-full rounded-xl overflow-hidden border border-line shadow-2xl transition-[border-color,box-shadow] duration-500 hover:border-terracotta/60 hover:shadow-terracotta/10 bg-black">
-              <div className="relative w-full aspect-video">
-                <Image
-                  src={`/posters/${conroyHero.id}.webp`}
-                  alt={conroyHero.title}
-                  fill
-                  sizes="100vw"
-                  className="object-cover pointer-events-none"
-                />
-                <iframe
-                  src={`https://player.vimeo.com/video/${conroyHero.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=720p`}
-                  title={conroyHero.title}
-                  onLoad={() => setTimeout(() => setConroyHeroReady(true), 250)}
-                  className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 bg-black transition-opacity duration-400 ${
-                    conroyHeroReady ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  allow="autoplay; fullscreen; picture-in-picture"
-                  loading="lazy"
-                  style={{ colorScheme: 'dark' }}
-                />
-                <div className="absolute inset-0 pointer-events-none z-20 bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
-              </div>
+              <AmbientReel
+                id={conroyHero.id}
+                title={conroyHero.title}
+                slug={conroyHero.slug}
+                aspect={conroyHero.aspect}
+                duration={conroyHero.duration}
+                tone={conroyHero.tone}
+                quality="720p"
+                sizes="100vw"
+                className="w-full"
+              />
             </div>
             <p className="font-mono text-label text-muted tracking-widest uppercase mt-4 text-center sm:text-left">
               {WORKS_COPY.conroyReelsLead}
@@ -410,20 +403,17 @@ export function SelectedWorks() {
                         onClick={() => handleCardClick(reel)}
                         onMouseEnter={() => {
                           setHoveredIdx(idx);
-                          setHoveredReelReady(false);
                         }}
                         onMouseLeave={() => {
                           setHoveredIdx(null);
-                          setHoveredReelReady(false);
                         }}
                         onFocus={() => {
                           setHoveredIdx(idx);
-                          setHoveredReelReady(false);
                         }}
                         onBlur={() => {
                           setHoveredIdx(null);
-                          setHoveredReelReady(false);
                         }}
+                        data-cursor="Play"
                         className="playing-card-fan-item absolute inset-0 w-full h-full focus-visible:outline-none cursor-pointer select-none bg-transparent border-0 p-0"
                         style={
                           {
@@ -438,25 +428,42 @@ export function SelectedWorks() {
                       >
                         <div className="playing-card-lift pointer-events-none relative w-full h-full rounded-xl overflow-hidden border border-line-2 bg-ground-2 focus-visible:ring-2 focus-visible:ring-terracotta focus-visible:ring-offset-2 focus-visible:ring-offset-ground">
                           <div className="relative w-full h-full aspect-[9/16]">
-                            <Image
-                              src={`/posters/${reel.id}.webp`}
-                              alt={reel.title}
-                              fill
-                              sizes="190px"
-                              className="object-cover pointer-events-none"
-                            />
-                            {isHovered && (
-                              <iframe
-                                src={`https://player.vimeo.com/video/${reel.id}?background=1&autoplay=1&loop=1&muted=1&playsinline=1&autopause=0&dnt=1&quality=540p`}
+                            {isHovered ? (
+                              <AmbientReel
+                                id={reel.id}
                                 title={reel.title}
-                                onLoad={() => setTimeout(() => setHoveredReelReady(true), 250)}
-                                className={`absolute inset-0 w-full h-full border-0 pointer-events-none z-10 bg-black transition-opacity duration-400 ${
-                                  hoveredReelReady ? 'opacity-100' : 'opacity-0'
-                                }`}
-                                allow="autoplay; fullscreen; picture-in-picture"
-                                loading="lazy"
-                                style={{ colorScheme: 'dark' }}
+                                slug={reel.slug}
+                                aspect="9:16"
+                                quality="540p"
+                                sizes="190px"
+                                interactive={false}
+                                className="w-full h-full"
                               />
+                            ) : (
+                              <>
+                                {(lqipData as Record<string, string>)[reel.id] && (
+                                  <div
+                                    aria-hidden="true"
+                                    className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none filter blur-sm scale-105"
+                                    style={{
+                                      backgroundImage: `url("${
+                                        (lqipData as Record<string, string>)[reel.id]
+                                      }")`,
+                                    }}
+                                  />
+                                )}
+                                <Image
+                                  src={`/posters/${reel.id}.webp`}
+                                  alt={reel.title}
+                                  fill
+                                  sizes="190px"
+                                  placeholder={
+                                    (lqipData as Record<string, string>)[reel.id] ? 'blur' : 'empty'
+                                  }
+                                  blurDataURL={(lqipData as Record<string, string>)[reel.id]}
+                                  className="object-cover pointer-events-none z-[1]"
+                                />
+                              </>
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-ground/90 via-transparent to-transparent pointer-events-none z-20" />
                             <div className="absolute bottom-2 inset-x-2 flex justify-between items-end font-mono text-[0.62rem] text-muted pointer-events-none z-20">
@@ -492,31 +499,45 @@ export function SelectedWorks() {
               prefersReducedMotion ? 'grid' : 'grid sm:hidden'
             } grid-cols-2 sm:grid-cols-3 gap-4 pt-4`}
           >
-            {conroyReels.map((reel) => (
-              <button
-                key={reel.id}
-                type="button"
-                onClick={() => handleCardClick(reel)}
-                className="flex flex-col gap-2 group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta rounded-lg"
-              >
-                <div className="relative w-full aspect-[9/16] rounded-lg overflow-hidden border border-line-2 group-hover:border-terracotta/70 transition-[transform,border-color,box-shadow] duration-300 shadow-lg group-hover:scale-[1.02] bg-black">
-                  <Image
-                    src={`/posters/${reel.id}.webp`}
-                    alt={reel.title}
-                    fill
-                    sizes="(max-width: 640px) 50vw, 33vw"
-                    className="object-cover pointer-events-none"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ground/80 via-transparent to-transparent pointer-events-none" />
-                </div>
-                <div className="flex justify-between items-center font-mono text-[0.66rem] text-muted px-1">
-                  <span className="text-cream font-medium truncate pr-2 group-hover:text-terracotta transition-colors">
-                    {reel.title}
-                  </span>
-                  <span className="text-terracotta font-semibold whitespace-nowrap">{reel.duration}s</span>
-                </div>
-              </button>
-            ))}
+            {conroyReels.map((reel) => {
+              const reelLqip = (lqipData as Record<string, string>)[reel.id] || '';
+              return (
+                <button
+                  key={reel.id}
+                  type="button"
+                  onClick={() => handleCardClick(reel)}
+                  aria-label={`Open ${reel.title} reel`}
+                  data-cursor="Play"
+                  className="flex flex-col gap-2 group text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta rounded-lg"
+                >
+                  <div className="relative w-full aspect-[9/16] rounded-lg overflow-hidden border border-line-2 group-hover:border-terracotta/70 transition-[transform,border-color,box-shadow] duration-300 shadow-lg group-hover:scale-[1.02] bg-black">
+                    {reelLqip && (
+                      <div
+                        aria-hidden="true"
+                        className="absolute inset-0 z-0 bg-cover bg-center pointer-events-none filter blur-sm scale-105"
+                        style={{ backgroundImage: `url("${reelLqip}")` }}
+                      />
+                    )}
+                    <Image
+                      src={`/posters/${reel.id}.webp`}
+                      alt={reel.title}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 33vw"
+                      placeholder={reelLqip ? 'blur' : 'empty'}
+                      blurDataURL={reelLqip}
+                      className="object-cover pointer-events-none z-[1]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ground/80 via-transparent to-transparent pointer-events-none z-10" />
+                  </div>
+                  <div className="flex justify-between items-center font-mono text-[0.66rem] text-muted px-1">
+                    <span className="text-cream font-medium truncate pr-2 group-hover:text-terracotta transition-colors">
+                      {reel.title}
+                    </span>
+                    <span className="text-terracotta font-semibold whitespace-nowrap">{reel.duration}s</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

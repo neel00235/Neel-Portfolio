@@ -27,6 +27,7 @@ export default {
         taurian: ['var(--font-taurian)', 'Georgia', 'serif'],
         serif:   ['var(--font-instrument)', 'Georgia', 'serif'],
         script:  ['var(--font-ephesis)', 'cursive'],
+        cursive: ['var(--font-cursive-accent)', 'cursive'],
         sans:    ['var(--font-manrope)', 'system-ui', '-apple-system', 'sans-serif'],
         mono:    ['var(--font-jetbrains)', 'ui-monospace', 'monospace'],
       },

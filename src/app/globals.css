@@ -94,6 +94,7 @@ select {
   color: var(--cream);
   accent-color: var(--terracotta);
   border-radius: 4px;
+  font-size: 16px;
 }
 
 input::placeholder,
@@ -261,6 +262,23 @@ body.grid-off .grid-overlay,
 .gradient-orb-2 {
   background: radial-gradient(circle at center, rgba(133, 43, 54, 0.2) 0%, rgba(44, 62, 160, 0.1) 50%, transparent 75%);
   animation: gradientFloat2 22s ease-in-out infinite;
+}
+
+/* Item 6b: Responsive Marquee Rail Height */
+.marquee-rail {
+  --rail-h: 168px;
+}
+
+@media (min-width: 640px) {
+  .marquee-rail {
+    --rail-h: 224px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .marquee-rail {
+    --rail-h: 288px;
+  }
 }
 
 /* Hide scrollbar utility */

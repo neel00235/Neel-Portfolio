@@ -6,7 +6,7 @@ import { ArrowRight, Maximize2 } from 'lucide-react';
 import { GALLERY_COPY } from '@/data/content';
 import { UNIQUE_WORKS } from '@/data/portfolio.generated';
 import { VideoFrame } from '@/components/video/VideoFrame';
-import { VideoModal, ModalWork } from '@/components/video/VideoModal';
+import { useLightbox } from '@/components/video/LightboxProvider';
 import { Magnetic } from '@/components/cursor/Magnetic';
 import { playSound } from '@/lib/sound';
 import { Reveal } from '@/components/motion/Reveal';
@@ -18,8 +18,8 @@ import { Flip } from 'gsap/dist/Flip';
 gsap.registerPlugin(ScrollTrigger, Flip);
 
 export function Gallery() {
+  const { open } = useLightbox();
   const [activeKicker, setActiveKicker] = useState('all');
-  const [modalWork, setModalWork] = useState<ModalWork | null>(null);
 
   const galleryRef = useRef<HTMLElement>(null);
   const headerRef = useRef<HTMLDivElement>(null);
@@ -149,16 +149,13 @@ export function Gallery() {
     return () => ctx.revert();
   }, []);
 
-  const handleOpenModal = (work: ModalWork) => {
+  const handleOpenModal = (work: (typeof UNIQUE_WORKS)[0]) => {
     playSound('click');
-    setModalWork(work);
+    open(work);
   };
 
   return (
     <section ref={galleryRef} id="gallery" className="relative w-full py-24 px-6 md:px-12 border-b border-line overflow-hidden">
-      {/* Lightbox Zoom Modal */}
-      <VideoModal work={modalWork} onClose={() => setModalWork(null)} />
-
       <div className="max-w-shell mx-auto relative z-10">
         {/* Section Header */}
         <div ref={headerRef} className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pb-8 border-b border-line-2">
@@ -228,8 +225,17 @@ export function Gallery() {
             <Reveal key={work.id} variant="up" delay={0.04 * (idx % 6)}>
               <div className="gallery-tile flex flex-col gap-3 group">
                 <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Open ${work.title} video`}
                   onClick={() => handleOpenModal(work)}
-                  className="cursor-pointer relative rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-[transform,border-color,box-shadow] duration-300 shadow-lg hover:-translate-y-1.5"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      handleOpenModal(work);
+                    }
+                  }}
+                  className="cursor-pointer relative rounded-lg overflow-hidden border border-line-2 hover:border-terracotta/60 transition-[transform,border-color,box-shadow] duration-300 shadow-lg hover:-translate-y-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta"
                   data-cursor="Zoom"
                 >
                   <VideoFrame
@@ -246,7 +252,7 @@ export function Gallery() {
                       e.stopPropagation();
                       handleOpenModal(work);
                     }}
-                    className="absolute top-2.5 right-2.5 z-20 p-1.5 rounded-full bg-ground/95 md:bg-ground/80 md:backdrop-blur-md border border-line text-cream opacity-0 group-hover:opacity-100 hover:text-terracotta transition-opacity duration-200"
+                    className="absolute top-2.5 right-2.5 z-20 p-2 md:p-1.5 rounded-full bg-ground/95 md:bg-ground/80 md:backdrop-blur-md border border-line text-cream opacity-100 md:opacity-0 md:group-hover:opacity-100 hover:text-terracotta transition-opacity duration-200"
                     aria-label="Zoom video"
                     title="Zoom in full player"
                   >

@@ -17,7 +17,7 @@ export const bodoniModa = localFont({
 });
 
 export const mbfTaurian = localFont({
-  src: '../../public/fonts/mbf-taurian.otf',
+  src: '../../public/fonts/mbf-taurian-subset.woff2',
   variable: '--font-taurian',
   display: 'swap',
   weight: '400',
@@ -44,6 +44,14 @@ export const instrumentSerif = localFont({
 export const ephesis = localFont({
   src: '../../public/fonts/ephesis-subset.woff2',
   variable: '--font-ephesis',
+  display: 'swap',
+  weight: '400',
+  style: 'normal',
+});
+
+export const pinyonScript = localFont({
+  src: '../../public/fonts/pinyon-script-latin.woff2',
+  variable: '--font-cursive-accent',
   display: 'swap',
   weight: '400',
   style: 'normal',
