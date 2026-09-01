@@ -101,3 +101,4 @@ npx serve out
 ## License & Copyright
 
 All video edits, motion graphics, and content © 2026 Neel Patel. All rights reserved.
+"# Neel-Portfolio" 
