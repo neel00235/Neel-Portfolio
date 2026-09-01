@@ -49,9 +49,8 @@ function AutoplayReel({
 
       {/* Scaled caption row with truncate and min-w-0 */}
       <div
-        className={`flex justify-between items-center font-mono ${
-          isLead ? 'text-[0.78rem] sm:text-[0.82rem]' : 'text-[0.72rem] sm:text-[0.75rem]'
-        } text-muted px-1 min-w-0`}
+        className={`flex justify-between items-center font-mono ${isLead ? 'text-[0.78rem] sm:text-[0.82rem]' : 'text-[0.72rem] sm:text-[0.75rem]'
+          } text-muted px-1 min-w-0`}
       >
         <span className="text-cream font-medium truncate min-w-0 pr-2 group-hover:text-terracotta transition-colors">
           {work.title}
@@ -238,12 +237,12 @@ export function Hero() {
         {/* 3-Plane Parallax Hero Stack */}
         <div className="relative w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Left Column: Typography & Lead Copy */}
-          <div className="lg:col-span-7 z-20 flex flex-col order-2 lg:order-1">
-            {/* Display Mega Wordmark - Single Authoritative Title with Bold + Cursive Treatment (Item 3) */}
+          <div className="lg:col-span-7 z-20 flex flex-col order-2 lg:order-1 items-center lg:items-start text-center lg:text-left">
+            {/* Display Mega Wordmark - Single Authoritative Title */}
             <h1
               ref={wordmarkRef}
               aria-label="Neel Patel"
-              className="flex flex-col text-mega uppercase tracking-normal leading-[1.0] pb-6 mb-10 drop-shadow-md select-none overflow-visible"
+              className="flex flex-wrap flex-row items-baseline justify-center text-center gap-x-2.5 sm:gap-x-3.5 lg:gap-x-0 lg:flex-col lg:items-start lg:justify-start lg:text-left text-[clamp(2.6rem,10.5vw,10.5rem)] lg:text-mega uppercase tracking-normal leading-[1.0] pb-2 mb-6 lg:pb-4 lg:mb-8 drop-shadow-md select-none overflow-visible"
             >
               {/* Line 1: NEEL in MBF Taurian — leading-[1.02], pb-[0.12em] and overflow-visible ensure glyph serifs/descenders are never clipped */}
               <span className="wordmark-line-1 relative inline-block font-taurian font-normal tracking-tight leading-[1.02] pb-[0.12em] overflow-visible">
@@ -253,8 +252,8 @@ export function Hero() {
                 <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none leading-[1.02] pb-[0.12em] overflow-visible">L</span>
               </span>
 
-              {/* Line 2: Patel in flowing font-cursive with animated luxury gradient and prominent size */}
-              <span className="wordmark-line-2 font-cursive normal-case text-[1.42em] leading-[0.85] -mt-[0.08em] ml-2 sm:ml-4 tracking-[0.04em] select-none block overflow-visible pb-3">
+              {/* Line 2: Patel in MBF Taurian with animated luxury gradient */}
+              <span className="wordmark-line-2 relative font-taurian font-normal leading-[1.02] tracking-tight select-none inline-block lg:block overflow-visible pb-[0.12em] text-[1em] lg:text-[1.3em] mt-0 lg:-mt-[100px]">
                 <span className="inline-block bg-gradient-to-r from-cream via-terracotta to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">
                   Patel
                 </span>
@@ -265,20 +264,20 @@ export function Hero() {
             <Reveal variant="up" delay={0.1}>
               <div
                 ref={roleRef}
-                className="flex items-center gap-3 font-mono text-terracotta text-label uppercase tracking-[0.24em] font-semibold mb-6"
+                className="flex items-center justify-center lg:justify-start gap-3 font-mono text-terracotta text-label uppercase tracking-[0.24em] font-semibold mb-6"
               >
                 <SplitText text={`${HERO.rolePrefix} ${HERO.roleDot} ${HERO.roleSuffix}`} by="word" />
               </div>
             </Reveal>
 
-            {/* Cursive Accent Line per Item 2b (Ephesis font-script) */}
+            {/* Cursive Accent Line per Item 2b (Ephesis font-script) - honest height & centered/flush alignment */}
             <Reveal variant="up" delay={0.12}>
-              <div className="flex items-center gap-3 mb-6">
-                <span className="h-[1px] w-8 bg-terracotta/40" />
-                <span className="inline-block font-script text-terracotta lowercase text-[1.65em] font-normal leading-[0.72] -my-[0.18em] tracking-wide select-none">
+              <div className="flex items-center justify-center lg:justify-start gap-3 mb-6 min-h-[1.5rem]">
+                <span className="h-[1px] w-6 sm:w-8 bg-terracotta/40" />
+                <span className="inline-block font-script text-terracotta lowercase text-[1.45em] font-normal leading-[1.2] tracking-wide select-none">
                   crafting rhythm from pure motion
                 </span>
-                <span className="h-[1px] flex-1 max-w-[120px] bg-terracotta/40" />
+                <span className="h-[1px] flex-1 max-w-[80px] sm:max-w-[120px] bg-terracotta/40" />
               </div>
             </Reveal>
 
@@ -286,7 +285,7 @@ export function Hero() {
             <Reveal variant="up" delay={0.15}>
               <p
                 ref={leadRef}
-                className="font-serif text-lead text-cream/90 leading-relaxed mb-8 max-w-xl"
+                className="font-serif text-lead text-cream/90 leading-relaxed mb-8 max-w-xl text-center lg:text-left mx-auto lg:mx-0"
               >
                 I&apos;m a video editor specialised in{' '}
                 <span className="text-terracotta font-medium italic">colour grading</span> and{' '}
@@ -300,7 +299,7 @@ export function Hero() {
 
             {/* CTAs with In-Animation */}
             <Reveal variant="up" delay={0.2}>
-              <div ref={ctaRef} className="flex flex-wrap items-center gap-4 mb-8">
+              <div ref={ctaRef} className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-8">
                 <Magnetic strength={0.15} cursor={HERO.ctaPrimary.cursor}>
                   <a
                     href={HERO.ctaPrimary.href}

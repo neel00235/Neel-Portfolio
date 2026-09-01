@@ -239,16 +239,18 @@ export function Contact() {
           <div className="lg:col-span-6 flex flex-col relative z-20 min-w-0">
             <h2
               ref={headlineRef}
-              className="font-taurian text-[clamp(2.2rem,8vw,7.5rem)] text-cream uppercase leading-[0.9] tracking-wide mb-8 [&_.whitespace-nowrap:has(.split-mask)]:block [&_.whitespace-nowrap:not(:has(.split-mask))]:hidden"
+              className="font-taurian text-[clamp(1.9rem,8vw,7.5rem)] text-cream uppercase leading-[0.95] tracking-wide mb-8 text-center lg:text-left [&_.whitespace-nowrap:not(:has(.split-mask))]:hidden"
             >
-              <SplitText text={CONTACT_COPY.headlinePrefix} by="char" className="!block" />
-              <span className="block font-script text-terracotta lowercase text-[1.2em] font-normal leading-[0.75] select-none pointer-events-none relative z-10 animate-text-breathe [animation-duration:6.6s] [animation-delay:-2.2s]">
+              <SplitText text={CONTACT_COPY.headlinePrefix} by="char" className="block" />
+              <span className="block -mt-2  lg:mt-[-20px] lg:-mb-[30px] font-script text-terracotta lowercase text-[2.0em] font-normal leading-[0.82] lg:leading-[0.75] select-none pointer-events-none relative z-10 animate-text-breathe [animation-duration:6.6s] [animation-delay:-2.2s]">
                 {CONTACT_COPY.headlineScript}
               </span>
-              <SplitText text={CONTACT_COPY.headlineMiddle} by="char" className="!block" />
-              <span className="block text-cream relative z-20">
-                <SplitText text={CONTACT_COPY.headlineMega} by="char" className="!block" />
-              </span>
+              <div className="flex flex-wrap justify-center lg:block relative z-20">
+                <SplitText text={CONTACT_COPY.headlineMiddle} by="char" className="inline-block lg:block" />
+                <span className="inline-block lg:block text-cream">
+                  <SplitText text={CONTACT_COPY.headlineMega} by="char" className="inline-block lg:block" />
+                </span>
+              </div>
             </h2>
 
             {/* Direct Endpoints List */}

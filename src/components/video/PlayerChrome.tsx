@@ -1,13 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize2 } from 'lucide-react';
 import { useSound } from '@/store/useSound';
 import { playSound } from '@/lib/sound';
 
-interface PlayerChromeProps {
+export interface PlayerChromeProps {
   isPlaying: boolean;
   onTogglePlay: () => void;
+  onSeek?: (seconds: number) => void;
   onToggleFullscreen?: () => void;
   currentTime?: number;
   duration?: number;
@@ -16,14 +17,16 @@ interface PlayerChromeProps {
 }
 
 function formatTime(seconds: number): string {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
+  const s = Math.max(0, Math.floor(seconds));
+  const mins = Math.floor(s / 60);
+  const secs = Math.floor(s % 60);
   return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
 export function PlayerChrome({
   isPlaying,
   onTogglePlay,
+  onSeek,
   onToggleFullscreen,
   currentTime = 0,
   duration = 0,
@@ -31,6 +34,109 @@ export function PlayerChrome({
   className = '',
 }: PlayerChromeProps) {
   const { soundEnabled, toggleSound } = useSound();
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragProgress, setDragProgress] = useState<number | null>(null);
+
+  // During drag, reflect optimistic user position; otherwise follow real timeupdate
+  const displayProgress = isDragging && dragProgress !== null ? dragProgress : progress;
+  const clampedProgress = Math.min(1, Math.max(0, displayProgress));
+  const displayTime =
+    isDragging && dragProgress !== null && duration > 0 ? dragProgress * duration : currentTime;
+
+  const getFractionFromPointer = (e: React.PointerEvent<HTMLDivElement>): number => {
+    if (!trackRef.current) return 0;
+    const rect = trackRef.current.getBoundingClientRect();
+    if (rect.width <= 0) return 0;
+    return Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    if (e.button !== 0) return; // Only primary button
+    try {
+      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    } catch {}
+    const fraction = getFractionFromPointer(e);
+    setIsDragging(true);
+    setDragProgress(fraction);
+    if (duration > 0 && onSeek) {
+      onSeek(fraction * duration);
+    }
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    e.stopPropagation();
+    const fraction = getFractionFromPointer(e);
+    setDragProgress(fraction);
+    if (duration > 0 && onSeek) {
+      onSeek(fraction * duration);
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    e.stopPropagation();
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    const fraction = getFractionFromPointer(e);
+    setIsDragging(false);
+    setDragProgress(null);
+    if (duration > 0 && onSeek) {
+      onSeek(fraction * duration);
+    }
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    try {
+      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+    setIsDragging(false);
+    setDragProgress(null);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (duration <= 0 || !onSeek) return;
+    let targetTime: number | null = null;
+
+    switch (e.key) {
+      case 'ArrowLeft':
+        targetTime = Math.max(0, currentTime - 5);
+        break;
+      case 'ArrowRight':
+        targetTime = Math.min(duration, currentTime + 5);
+        break;
+      case 'ArrowDown':
+        targetTime = Math.max(0, currentTime - 10);
+        break;
+      case 'ArrowUp':
+        targetTime = Math.min(duration, currentTime + 10);
+        break;
+      case 'Home':
+        targetTime = 0;
+        break;
+      case 'End':
+        targetTime = duration;
+        break;
+      case 'PageDown':
+        targetTime = Math.max(0, currentTime - 30);
+        break;
+      case 'PageUp':
+        targetTime = Math.min(duration, currentTime + 30);
+        break;
+      default:
+        return;
+    }
+
+    if (targetTime !== null) {
+      e.preventDefault();
+      e.stopPropagation();
+      onSeek(targetTime);
+    }
+  };
 
   return (
     <div
@@ -64,16 +170,47 @@ export function PlayerChrome({
 
         {duration > 0 && (
           <span className="font-mono text-[0.68rem] tracking-wider text-muted select-none tabular-nums">
-            {formatTime(currentTime)} / {formatTime(duration)}
+            {formatTime(displayTime)} / {formatTime(duration)}
           </span>
         )}
       </div>
 
-      {/* Progress track */}
-      <div className="relative flex-1 h-1 mx-2 bg-cream/15 rounded-full overflow-hidden">
+      {/* Accessible Interactive Progress & Seek Slider with >=44px Hit Area */}
+      <div
+        ref={trackRef}
+        role="slider"
+        aria-label="Seek"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(duration)}
+        aria-valuenow={Math.round(displayTime)}
+        aria-valuetext={`${formatTime(displayTime)} of ${formatTime(duration)}`}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        className="relative flex-1 h-11 mx-2 flex items-center cursor-pointer select-none touch-none group/slider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-terracotta/80 rounded-md"
+      >
+        {/* Visible Track */}
+        <div className="relative w-full h-1 bg-cream/15 rounded-full overflow-hidden group-hover/slider:h-1.5 transition-[height] duration-150">
+          {/* Fill Bar - 100ms transition dropped while dragging for 1:1 responsive feel */}
+          <div
+            className={`h-full w-full bg-terracotta origin-left ${
+              isDragging ? '' : 'transition-transform duration-100'
+            }`}
+            style={{ transform: `scaleX(${clampedProgress})` }}
+          />
+        </div>
+
+        {/* Visible Scrubber Thumb */}
         <div
-          className="h-full w-full bg-terracotta origin-left transition-transform duration-100"
-          style={{ transform: `scaleX(${Math.min(1, Math.max(0, progress))})` }}
+          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-cream border border-terracotta shadow-md pointer-events-none transition-transform ${
+            isDragging
+              ? 'opacity-100 scale-125'
+              : 'opacity-0 group-hover/slider:opacity-100 group-focus-visible/slider:opacity-100 scale-100'
+          }`}
+          style={{ left: `${clampedProgress * 100}%` }}
         />
       </div>
 
@@ -93,3 +230,4 @@ export function PlayerChrome({
     </div>
   );
 }
+

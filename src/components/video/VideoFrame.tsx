@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
-import { VimeoFacade } from './VimeoFacade';
+import { VimeoFacade, VimeoFacadeHandle } from './VimeoFacade';
 import { PlayerChrome } from './PlayerChrome';
 import { useTone } from '@/store/useTone';
 import { useVideoRegistry } from '@/store/useVideoRegistry';
@@ -36,15 +36,20 @@ export function VideoFrame({
   className = '',
 }: VideoFrameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const facadeRef = useRef<VimeoFacadeHandle>(null);
   const hoverIframeRef = useRef<HTMLIFrameElement | null>(null);
   const dwellTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isPlayingFull, setIsPlayingFull] = useState(autoPlayLead);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [playerDuration, setPlayerDuration] = useState(0);
   const [hoverMounted, setHoverMounted] = useState(false);
   const [hoverReady, setHoverReady] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [progress, setProgress] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const effectiveDuration = playerDuration > 0 ? playerDuration : duration;
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -92,6 +97,9 @@ export function VideoFrame({
     const currentActive = useVideoRegistry.getState().activeFullId;
     if (currentActive && currentActive !== id && isPlayingFull) {
       setIsPlayingFull(false);
+      setIsVideoPlaying(false);
+      setCurrentTime(0);
+      setProgress(0);
     }
   }, [activeFullId, id, isPlayingFull]);
 
@@ -183,26 +191,14 @@ export function VideoFrame({
     }
   }, [isPlayingFull, tone, setTone]);
 
-  // Smooth live timeline progression during active playback
+  // Reset playback position and state when full player is unmounted
   useEffect(() => {
     if (!isPlayingFull) {
       setCurrentTime(0);
       setProgress(0);
-      return;
+      setIsVideoPlaying(false);
     }
-    const interval = setInterval(() => {
-      setCurrentTime((prev) => {
-        const next = prev + 0.25;
-        if (duration > 0) {
-          setProgress(Math.min(1, next / duration));
-          if (next >= duration) return 0;
-        }
-        return next;
-      });
-    }, 250);
-
-    return () => clearInterval(interval);
-  }, [isPlayingFull, duration]);
+  }, [isPlayingFull]);
 
   // Rule 5: Gate off hover where hover is meaningless or expensive
   const canHoverAutoplay = () => {
@@ -243,17 +239,38 @@ export function VideoFrame({
     teardownHover();
   };
 
-  const handlePlayClick = (e?: React.MouseEvent) => {
+  const userPausedRef = useRef(false);
+
+  const handlePosterPlayClick = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     playSound('click');
     teardownHover();
+    userPausedRef.current = false;
     if (!isPlayingFull) {
       playFull(id);
       setIsPlayingFull(true);
       if (tone) setTone(tone);
+    }
+  };
+
+  const handleTogglePlay = () => {
+    playSound('click');
+    if (isVideoPlaying) {
+      userPausedRef.current = true;
+      facadeRef.current?.pause();
+      setIsVideoPlaying(false);
     } else {
-      stopFull(id);
-      setIsPlayingFull(false);
+      userPausedRef.current = false;
+      facadeRef.current?.play();
+      setIsVideoPlaying(true);
+    }
+  };
+
+  const handleSeek = (seconds: number) => {
+    facadeRef.current?.seekTo(seconds);
+    setCurrentTime(seconds);
+    if (effectiveDuration > 0) {
+      setProgress(Math.min(1, Math.max(0, seconds / effectiveDuration)));
     }
   };
 
@@ -285,7 +302,7 @@ export function VideoFrame({
       } select-none transition-all duration-500 ease-out cursor-pointer ${className}`}
       data-cursor={isPlayingFull ? 'Sound' : 'Play'}
       onClick={() => {
-        if (!isPlayingFull) handlePlayClick();
+        if (!isPlayingFull) handlePosterPlayClick();
       }}
     >
       {/* 1. LQIP blur fallback - always present beneath everything */}
@@ -361,6 +378,7 @@ export function VideoFrame({
       {isPlayingFull && (
         <div className="absolute inset-0 z-20">
           <VimeoFacade
+            ref={facadeRef}
             videoId={id}
             title={title}
             autoPlay={true}
@@ -369,7 +387,21 @@ export function VideoFrame({
                 window.dispatchEvent(new Event('portfolio:leadfilm-ready'));
               }
             }}
+            onPlay={() => {
+              if (!userPausedRef.current) {
+                setIsVideoPlaying(true);
+              }
+            }}
+            onPause={() => {
+              setIsVideoPlaying(false);
+            }}
+            onDuration={(d) => {
+              if (d > 0) {
+                setPlayerDuration(d);
+              }
+            }}
             onEnded={() => {
+              setIsVideoPlaying(false);
               // The lead film is a loop — a stray finish event must not collapse it to the poster.
               if (!autoPlayLead) setIsPlayingFull(false);
             }}
@@ -379,11 +411,12 @@ export function VideoFrame({
             }}
           />
           <PlayerChrome
-            isPlaying={isPlayingFull}
-            onTogglePlay={handlePlayClick}
+            isPlaying={isVideoPlaying}
+            onTogglePlay={handleTogglePlay}
+            onSeek={handleSeek}
             onToggleFullscreen={handleToggleFullscreen}
             currentTime={currentTime}
-            duration={duration}
+            duration={effectiveDuration}
             progress={progress}
           />
         </div>

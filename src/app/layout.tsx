@@ -49,7 +49,14 @@ export const metadata: Metadata = {
     creator: '@neelvt',
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: [
+      { url: '/icon.png?v=4', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon.png?v=4', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico?v=4' },
+    ],
+    apple: [
+      { url: '/apple-icon.png?v=4', sizes: '180x180', type: 'image/png' },
+    ],
   },
 };
 

@@ -16,7 +16,13 @@ import lqipData from '@/data/lqip.json';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const RAIL_H = 288; // px — the 4:3 reference card's current height (384 × 3/4)
+/**
+ * Direction multiplier for marquee drag gestures.
+ * 1 = direct manipulation (drag right -> cards move right with cursor)
+ * -1 = inverted manipulation (drag right -> cards move left)
+ */
+const DRAG_DIRECTION = 1;
+const DRAG_THRESHOLD_PX = 8;
 
 const RATIO: Record<string, number> = {
   '16:9': 16 / 9,
@@ -65,6 +71,178 @@ function MarqueeReelCard({ work }: { work: Work }) {
           <span>·</span>
           <span>{work.duration}s</span>
         </div>
+      </div>
+    </div>
+  );
+}
+
+interface DraggableMarqueeRowProps {
+  works: Work[];
+  rowId: string;
+  animationDuration: string;
+  animationDelay?: string;
+  railRunning: boolean;
+  prefersReducedMotion: boolean;
+  className?: string;
+}
+
+function DraggableMarqueeRow({
+  works,
+  rowId,
+  animationDuration,
+  animationDelay,
+  railRunning,
+  prefersReducedMotion,
+  className = '',
+}: DraggableMarqueeRowProps) {
+  const outerRef = useRef<HTMLDivElement>(null);
+  const innerRef = useRef<HTMLDivElement>(null);
+
+  const [dragOffset, setDragOffset] = useState(0);
+  const [isPointerDown, setIsPointerDown] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const pointerStateRef = useRef<{
+    isDown: boolean;
+    startX: number;
+    startOffset: number;
+    hasMoved: boolean;
+    pointerId: number | null;
+    suppressClickUntil: number;
+  }>({
+    isDown: false,
+    startX: 0,
+    startOffset: 0,
+    hasMoved: false,
+    pointerId: null,
+    suppressClickUntil: 0,
+  });
+
+  const getHalfWidth = () => {
+    if (!innerRef.current) return 0;
+    return innerRef.current.scrollWidth / 2;
+  };
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.button !== 0) return;
+    const target = e.currentTarget;
+    try {
+      target.setPointerCapture(e.pointerId);
+    } catch {}
+
+    pointerStateRef.current = {
+      isDown: true,
+      startX: e.clientX,
+      startOffset: dragOffset,
+      hasMoved: false,
+      pointerId: e.pointerId,
+      suppressClickUntil: 0,
+    };
+    setIsPointerDown(true);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!pointerStateRef.current.isDown) return;
+    if (pointerStateRef.current.pointerId !== null && pointerStateRef.current.pointerId !== e.pointerId) return;
+
+    const deltaX = (e.clientX - pointerStateRef.current.startX) * DRAG_DIRECTION;
+
+    if (!pointerStateRef.current.hasMoved) {
+      if (Math.abs(deltaX) >= DRAG_THRESHOLD_PX) {
+        pointerStateRef.current.hasMoved = true;
+        setIsDragging(true);
+      } else {
+        return;
+      }
+    }
+
+    const halfWidth = getHalfWidth();
+    let newOffset = pointerStateRef.current.startOffset + deltaX;
+    if (halfWidth > 0) {
+      newOffset = ((newOffset % halfWidth) + halfWidth) % halfWidth;
+      if (newOffset > 0) newOffset -= halfWidth;
+    }
+
+    setDragOffset(newOffset);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerStateRef.current.pointerId !== null && pointerStateRef.current.pointerId !== e.pointerId) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+
+    if (pointerStateRef.current.hasMoved) {
+      pointerStateRef.current.suppressClickUntil = Date.now() + 150;
+      pointerStateRef.current.hasMoved = false;
+    }
+
+    pointerStateRef.current.isDown = false;
+    pointerStateRef.current.pointerId = null;
+    setIsPointerDown(false);
+    setIsDragging(false);
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (pointerStateRef.current.pointerId !== null && pointerStateRef.current.pointerId !== e.pointerId) return;
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
+
+    pointerStateRef.current.isDown = false;
+    pointerStateRef.current.hasMoved = false;
+    pointerStateRef.current.pointerId = null;
+    setIsPointerDown(false);
+    setIsDragging(false);
+  };
+
+  const handleClickCapture = (e: React.MouseEvent) => {
+    if (pointerStateRef.current.hasMoved || Date.now() < pointerStateRef.current.suppressClickUntil) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
+
+  const animationPlayState = !railRunning || isPointerDown ? 'paused' : 'running';
+
+  return (
+    <div
+      ref={outerRef}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerCancel}
+      onClickCapture={handleClickCapture}
+      data-cursor="Drag"
+      className={`touch-pan-y select-none cursor-grab active:cursor-grabbing w-full overflow-visible ${className}`}
+      style={{
+        transform: dragOffset ? `translate3d(${dragOffset}px, 0, 0)` : undefined,
+        willChange: isDragging ? 'transform' : undefined,
+      }}
+    >
+      <div
+        ref={innerRef}
+        className={`flex gap-6 w-max ${
+          prefersReducedMotion
+            ? ''
+            : 'animate-marquee-slow'
+        }`}
+        style={
+          prefersReducedMotion
+            ? undefined
+            : {
+                animationDuration,
+                animationDelay,
+                animationPlayState,
+              }
+        }
+      >
+        {works.map((work) => (
+          <MarqueeReelCard key={`rail${rowId}1-${work.id}`} work={work} />
+        ))}
+        {works.map((work) => (
+          <MarqueeReelCard key={`rail${rowId}2-${work.id}`} work={work} />
+        ))}
       </div>
     </div>
   );
@@ -288,43 +466,27 @@ export function SelectedWorks() {
             </div>
           </Reveal>
 
-          {/* Continuous Right-to-Left Marquee — Two Offset Rows */}
+          {/* Continuous Right-to-Left Marquee — Two Draggable Offset Rows */}
           <div className="marquee-rail relative w-full overflow-hidden py-8 -mx-6 md:-mx-12 px-6 md:px-12">
             {/* Row A */}
-            <div
-              className={`flex gap-6 w-max ${
-                prefersReducedMotion
-                  ? ''
-                  : `animate-marquee-slow [animation-duration:48s] ${
-                      railRunning ? '[animation-play-state:running]' : '[animation-play-state:paused]'
-                    }`
-              }`}
-            >
-              {railRowA.map((work) => (
-                <MarqueeReelCard key={`railA1-${work.id}`} work={work} />
-              ))}
-              {railRowA.map((work) => (
-                <MarqueeReelCard key={`railA2-${work.id}`} work={work} />
-              ))}
-            </div>
+            <DraggableMarqueeRow
+              works={railRowA}
+              rowId="A"
+              animationDuration="48s"
+              railRunning={railRunning}
+              prefersReducedMotion={prefersReducedMotion}
+            />
 
             {/* Row B */}
-            <div
-              className={`flex gap-6 w-max mt-6 ${
-                prefersReducedMotion
-                  ? ''
-                  : `animate-marquee-slow [animation-duration:56s] [animation-delay:-18s] ${
-                      railRunning ? '[animation-play-state:running]' : '[animation-play-state:paused]'
-                    }`
-              }`}
-            >
-              {railRowB.map((work) => (
-                <MarqueeReelCard key={`railB1-${work.id}`} work={work} />
-              ))}
-              {railRowB.map((work) => (
-                <MarqueeReelCard key={`railB2-${work.id}`} work={work} />
-              ))}
-            </div>
+            <DraggableMarqueeRow
+              works={railRowB}
+              rowId="B"
+              animationDuration="56s"
+              animationDelay="-18s"
+              railRunning={railRunning}
+              prefersReducedMotion={prefersReducedMotion}
+              className="mt-6"
+            />
           </div>
         </div>
 
