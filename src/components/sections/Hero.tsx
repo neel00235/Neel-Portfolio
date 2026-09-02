@@ -252,9 +252,11 @@ export function Hero() {
                 <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none leading-[1.02] pb-[0.12em] overflow-visible">L</span>
               </span>
 
-              {/* Line 2: Patel in font-script (same font as "deliver") with orange accent glow & shadow */}
-              <span className="wordmark-line-2 relative font-script font-normal normal-case select-none inline-block lg:block overflow-visible pb-[0.08em] text-[1.15em] sm:text-[1.25em] lg:text-[1.45em] leading-[0.8] mt-0 lg:-mt-[36px] text-terracotta [text-shadow:0_4px_20px_rgba(246,124,41,0.7),0_0_35px_rgba(246,124,41,0.35)] animate-text-breathe [animation-duration:6.0s]">
-                Patel
+              {/* Line 2: Patel in font-script (same font as "deliver") with rich orange animated gradient */}
+              <span className="wordmark-line-2 relative font-script font-normal normal-case select-none inline-block lg:block overflow-visible pb-[0.08em] text-[1.15em] sm:text-[1.25em] lg:text-[1.45em] leading-[0.8] mt-0 lg:-mt-[36px]">
+                <span className="inline-block bg-gradient-to-r from-[#ffb03a] via-[#ff5500] to-[#ff9426] bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">
+                  Patel
+                </span>
               </span>
             </h1>
 
