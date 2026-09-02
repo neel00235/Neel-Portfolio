@@ -104,11 +104,12 @@ export async function POST(req: NextRequest) {
     const smtpAppPassword = process.env.SMTP_APP_PASSWORD;
     const contactTo = process.env.CONTACT_TO || smtpUser;
 
-    if (!smtpUser || !smtpAppPassword || !contactTo) {
-      console.error('SMTP configuration missing: SMTP_USER, SMTP_APP_PASSWORD, or CONTACT_TO is not set');
+    const isDummyPassword = !smtpAppPassword || smtpAppPassword.includes('xxxx') || smtpAppPassword.length < 16;
+
+    if (!smtpUser || isDummyPassword || !contactTo) {
       return NextResponse.json(
-        { error: 'Email service is temporarily unconfigured. Please email me directly.' },
-        { status: 500 }
+        { error: 'SMTP not configured', unconfigured: true },
+        { status: 503 }
       );
     }
 
@@ -123,16 +124,56 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const subject = `New enquiry from ${name || 'portfolio visitor'} — neelpatel.com`;
-    const textContent = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
+    const subject = `🎬 New Project Inquiry: ${name || 'Client'} — neelpatel.com`;
+    const textContent = `🎬 NEW CLIENT BRIEF\n\nClient Name: ${name}\nEmail: ${email}\n\nProject Brief & Scope:\n${message}\n\nSent from neelpatel.com`;
     const htmlContent = `
-      <div style="font-family: sans-serif; line-height: 1.5; color: #111;">
-        <h2 style="color: #f67c29; margin-bottom: 16px;">New Enquiry from neelpatel.com</h2>
-        <p><strong>Name:</strong> ${escapeHtml(name)}</p>
-        <p><strong>Email:</strong> <a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></p>
-        <p><strong>Message:</strong></p>
-        <div style="background: #f9f9f9; border-left: 4px solid #f67c29; padding: 12px 16px; margin: 12px 0; white-space: pre-wrap;">${escapeHtml(message)}</div>
-      </div>
+      <!DOCTYPE html>
+      <html>
+      <body style="margin: 0; padding: 24px; background-color: #0c0a08; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #faf4e8;">
+        <div style="max-width: 580px; margin: 0 auto; background-color: #13100c; border: 1px solid #2e261d; border-radius: 14px; overflow: hidden;">
+          <div style="background: linear-gradient(90deg, #f67c29, #d6a76c); height: 4px; width: 100%;"></div>
+          <div style="padding: 28px 28px 20px 28px; border-bottom: 1px solid #241d16;">
+            <div style="font-family: ui-monospace, Consolas, monospace; font-size: 11px; letter-spacing: 0.18em; color: #f67c29; text-transform: uppercase; margin-bottom: 6px;">
+              🎬 INCOMING CLIENT BRIEF · NEEL PATEL EDITORIAL
+            </div>
+            <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #faf4e8; letter-spacing: -0.02em;">
+              New Project Inquiry
+            </h1>
+          </div>
+          <div style="padding: 20px 28px; background-color: #1b1611; border-bottom: 1px solid #241d16;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 5px 0; width: 120px; font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: #948a7b; text-transform: uppercase;">Client:</td>
+                <td style="padding: 5px 0; font-size: 15px; font-weight: 600; color: #faf4e8;">${escapeHtml(name)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 5px 0; font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: #948a7b; text-transform: uppercase;">Email:</td>
+                <td style="padding: 5px 0; font-size: 15px; color: #f67c29;">
+                  <a href="mailto:${escapeHtml(email)}" style="color: #f67c29; text-decoration: none; font-weight: 500;">${escapeHtml(email)}</a>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div style="padding: 24px 28px;">
+            <div style="font-family: ui-monospace, Consolas, monospace; font-size: 11px; letter-spacing: 0.15em; color: #948a7b; text-transform: uppercase; margin-bottom: 10px;">
+              PROJECT BRIEF &amp; TIMELINE
+            </div>
+            <div style="background-color: #18130e; border: 1px solid #2e261d; border-left: 3px solid #f67c29; border-radius: 6px; padding: 18px; font-size: 14px; line-height: 1.6; color: #e2d7c0; white-space: pre-wrap;">${escapeHtml(message)}</div>
+            <div style="margin-top: 24px; text-align: center;">
+              <a href="mailto:${escapeHtml(email)}?subject=Re:%20Project%20Enquiry%20%E2%80%94%20Neel%20Patel" 
+                 style="display: inline-block; background-color: #f67c29; color: #13100c; font-family: ui-monospace, Consolas, monospace; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; padding: 12px 24px; border-radius: 9999px;">
+                ✉️ Reply to ${escapeHtml(name)}
+              </a>
+            </div>
+          </div>
+          <div style="padding: 16px 28px; background-color: #0e0c0a; border-top: 1px solid #241d16; text-align: center;">
+            <p style="margin: 0; font-family: ui-monospace, Consolas, monospace; font-size: 11px; color: #948a7b;">
+              Sent via <a href="https://neelpatel.com" style="color: #d6a76c; text-decoration: none;">neelpatel.com</a> · Video Editing &amp; Colour Grading Suite
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
     `;
 
     await transporter.sendMail({
@@ -148,8 +189,8 @@ export async function POST(req: NextRequest) {
   } catch (err: unknown) {
     console.error('Error sending email via SMTP:', err instanceof Error ? err.message : 'Unknown error');
     return NextResponse.json(
-      { error: 'Failed to send message via SMTP. Please try again or email directly.' },
-      { status: 500 }
+      { error: 'Failed to send message via SMTP.', unconfigured: true },
+      { status: 503 }
     );
   }
 }

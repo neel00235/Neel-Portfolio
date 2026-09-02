@@ -97,12 +97,31 @@ export function Hero() {
           );
         }
 
+        // In-animation + infinite looping float for Patel
         const scriptLine = wordmarkRef.current.querySelector('.wordmark-line-2');
         if (scriptLine) {
           gsap.fromTo(
             scriptLine,
             { opacity: 0, y: 20 },
-            { opacity: 1, y: 0, duration: 0.9, ease: 'power2.out', delay: 0.45 }
+            {
+              opacity: 1,
+              y: 0,
+              duration: 0.9,
+              ease: 'power2.out',
+              delay: 0.45,
+              onComplete: () => {
+                // Infinite smooth floating & subtle tilt loop for "Patel"
+                // Change `y: -8` for higher/lower float, `rotation` for tilt, or `duration: 3` for speed
+                gsap.to(scriptLine, {
+                  y: -8,
+                  rotation: -0.7,
+                  duration: 2.8,
+                  ease: 'sine.inOut',
+                  repeat: -1,
+                  yoyo: true,
+                });
+              },
+            }
           );
         }
       }
@@ -242,7 +261,7 @@ export function Hero() {
             <h1
               ref={wordmarkRef}
               aria-label="Neel Patel"
-              className="flex flex-wrap flex-row items-baseline justify-center text-center gap-x-2.5 sm:gap-x-3.5 lg:gap-x-0 lg:flex-col lg:items-start lg:justify-start lg:text-left text-[clamp(2.6rem,10.5vw,10.5rem)] lg:text-mega tracking-normal leading-[1.0] pb-2 mb-6 lg:pb-4 lg:mb-8 select-none overflow-visible"
+              className="flex flex-wrap flex-row items-center justify-center text-center gap-x-2.5 sm:gap-x-4 lg:gap-x-0 lg:flex-col lg:items-start lg:justify-start lg:text-left text-[clamp(2.6rem,10.5vw,10.5rem)] lg:text-mega tracking-normal leading-[1.0] pb-2 mb-6 lg:pb-4 lg:mb-8 select-none overflow-visible"
             >
               {/* Line 1: NEEL in MBF Taurian — leading-[1.02], pb-[0.12em] and overflow-visible ensure glyph serifs/descenders are never clipped */}
               <span className="wordmark-line-1 relative inline-block font-taurian uppercase font-normal tracking-tight leading-[1.02] pb-[0.12em] overflow-visible drop-shadow-md">
@@ -252,12 +271,33 @@ export function Hero() {
                 <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none leading-[1.02] pb-[0.12em] overflow-visible">L</span>
               </span>
 
-              {/* Line 2: Patel in font-script (same font as "deliver") with rich orange animated gradient */}
-              <span className="wordmark-line-2 relative font-script font-normal normal-case select-none inline-block lg:block overflow-visible pb-[0.08em] text-[1.15em] sm:text-[1.25em] lg:text-[1.45em] leading-[0.8] mt-0 lg:-mt-[36px]">
-                <span className="inline-block bg-gradient-to-r from-[#ffb03a] via-[#ff5500] to-[#ff9426] bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">
+              {/* =========================================================================
+                  LINE 2: "Patel" (Cursive Wordmark Accent)
+                  -------------------------------------------------------------------------
+                  HOW TO CUSTOMIZE:
+                  1. SIZE (Font Size):
+                     - Mobile:   `text-[1.02em]` (matches NEEL optical size side-by-side)
+                     - Tablet:   `sm:text-[1.15em]`
+                     - Desktop:  `lg:text-[1.9em]` (heroic stacked scale)
+
+                  2. VERTICAL POSITION & SPACING (Y-Axis):
+                     - Desktop Overlap:  `lg:-mt-[190px]` (pulls Patel higher under NEEL on desktop)
+                     - Space Below:      `lg:-mb-[140px]` (removes gap below Patel on desktop)
+                     - Mobile Space:     `mt-0 mb-0`
+
+                  3. HORIZONTAL POSITION (X-Axis / Left Offset):
+                     - Mobile:   `ml-0` (gap controlled by h1's `gap-x-2.5`)
+                     - Desktop:  `lg:ml-[-80px]` (adjust -80px to shift further left or right)
+
+                  4. FAINT SHADOW:
+                     - `drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)]` gives a soft, faint depth shadow.
+                  ========================================================================= */}
+              <span className="wordmark-line-2 relative font-script font-normal normal-case select-none inline-block lg:block overflow-visible pt-[0.04em] pb-[0.16em] text-[1.9em] sm:text-[1.15em] lg:text-[1.9em] leading-[1.18] -mt-[35px] lg:-mt-[190px] mb-[20px] lg:-mb-[140px] ml-[-100px] lg:ml-[-80px] drop-shadow-[0_4px_14px_rgba(0,0,0,0.55)]">
+                <span className="inline-block translate-y-[75px] lg:translate-y-0 px-[0.35em] py-[0.15em] bg-gradient-to-r from-[#ff5500] via-[#ffe5be] to-[#ff8c1a] bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none overflow-visible">
                   Patel
                 </span>
               </span>
+
             </h1>
 
             {/* Role Header with In-Animation & >=32px Clear Space */}

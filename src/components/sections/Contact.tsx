@@ -13,7 +13,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const FORM_ENDPOINT =
-  process.env.NEXT_PUBLIC_FORM_ENDPOINT ?? 'https://formspree.io/f/mqaeavbl';
+  process.env.NEXT_PUBLIC_FORM_ENDPOINT || 'https://formsubmit.co/ajax/neelpatel00235@gmail.com';
 const CONTACT_EMAIL = 'neelpatel00235@gmail.com';
 
 export function Contact() {
@@ -136,66 +136,61 @@ export function Contact() {
     const form = e.currentTarget;
     const formData = new FormData(form);
 
-    const name = (formData.get('Name') as string) || '';
-    const email = (formData.get('Email') as string) || '';
-    const message = (formData.get('Message') as string) || '';
+    const name = ((formData.get('Name') as string) || '').trim();
+    const email = ((formData.get('Email') as string) || '').trim();
+    const message = ((formData.get('Message') as string) || '').trim();
+    const gotcha = (formData.get('_gotcha') as string) || '';
 
-    // Provider fields
     const subject = `New enquiry from ${name || 'portfolio visitor'} — neelpatel.com`;
-    formData.set('_subject', subject);
-    if (email) {
-      formData.set('_replyto', email);
-    }
-
     const mailto =
       `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}` +
       `&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\n${message}`.slice(0, 1800))}`;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
     try {
-      let res: Response | null = null;
-      let usedSmtp = false;
+      const endpoint = FORM_ENDPOINT;
+      const isFormSubmit = endpoint.includes('formsubmit.co');
 
-      // 8c: Try server-side /api/contact first
-      try {
-        const apiRes = await fetch('/api/contact', {
-          method: 'POST',
-          body: formData,
-          headers: { Accept: 'application/json' },
-          signal: controller.signal,
-        });
+      const payload = isFormSubmit
+        ? JSON.stringify({
+            "🎬 Client / Producer Name": name,
+            "✉️ Direct Email": email,
+            "📋 Project Brief & Scope": message,
+            "🎞️ Discipline Requested": "Video Editing & Colour Grading",
+            "🌐 Source": "neelpatel.com — Portfolio Inquiries",
+            _subject: `🎬 New Project Inquiry from ${name || 'Client'} — neelpatel.com`,
+            _replyto: email,
+            _template: 'table',
+            _captcha: 'false',
+            _honey: gotcha,
+          })
+        : formData;
 
-        // If route does not exist (static host: 404 / 405), fall through to FORM_ENDPOINT
-        if (apiRes.status === 404 || apiRes.status === 405) {
-          usedSmtp = false;
-        } else {
-          res = apiRes;
-          usedSmtp = true;
-        }
-      } catch (apiErr: unknown) {
-        // If aborted, let outer catch handle it
-        if (apiErr instanceof DOMException && apiErr.name === 'AbortError') {
-          throw apiErr;
-        }
-        // On network error or failure reaching /api/contact, fall through to FORM_ENDPOINT
-        usedSmtp = false;
-      }
+      const headers: HeadersInit = isFormSubmit
+        ? {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          }
+        : {
+            Accept: 'application/json',
+          };
 
-      // Fallback: FORM_ENDPOINT (Formspree or custom endpoint)
-      if (!usedSmtp || !res) {
-        res = await fetch(FORM_ENDPOINT, {
-          method: 'POST',
-          body: formData,
-          headers: { Accept: 'application/json' },
-          signal: controller.signal,
-        });
-      }
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        body: payload,
+        headers,
+        signal: controller.signal,
+      });
 
       clearTimeout(timeoutId);
 
       if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data && data.success === 'false' && !data.message?.includes('Activation')) {
+          throw new Error(data.message || 'Submission failed. Please try emailing directly:');
+        }
         setSubmitted(true);
         playSound('reveal');
         form.reset();
@@ -203,6 +198,7 @@ export function Contact() {
         const errorData = await res.json().catch(() => null);
         const errMsg =
           errorData?.error ||
+          errorData?.message ||
           errorData?.errors?.[0]?.message ||
           'Form endpoint returned an error. Please email me directly:';
         setError(errMsg);
@@ -213,8 +209,8 @@ export function Contact() {
       const isAbort = err instanceof DOMException && err.name === 'AbortError';
       setError(
         isAbort
-          ? 'Request timed out after 8 seconds. Please email me directly:'
-          : 'Unable to deliver message via form endpoint. Please email me directly:'
+          ? 'Request timed out. Please email me directly:'
+          : 'Unable to deliver message. Please email me directly:'
       );
       setMailtoFallback(mailto);
     } finally {
@@ -326,7 +322,7 @@ export function Contact() {
                   </div>
                   <h3 className="font-display font-bold text-2xl text-cream">Message Delivered</h3>
                   <p className="font-sans text-cream/70 text-sm max-w-sm">
-                    Thanks for reaching out. I reply to all inquiries within 24 hours.
+                    Thanks for reaching out. Your project details have been delivered directly to Neel.
                   </p>
                 </div>
               ) : (
