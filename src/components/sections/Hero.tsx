@@ -242,21 +242,19 @@ export function Hero() {
             <h1
               ref={wordmarkRef}
               aria-label="Neel Patel"
-              className="flex flex-wrap flex-row items-baseline justify-center text-center gap-x-2.5 sm:gap-x-3.5 lg:gap-x-0 lg:flex-col lg:items-start lg:justify-start lg:text-left text-[clamp(2.6rem,10.5vw,10.5rem)] lg:text-mega uppercase tracking-normal leading-[1.0] pb-2 mb-6 lg:pb-4 lg:mb-8 drop-shadow-md select-none overflow-visible"
+              className="flex flex-wrap flex-row items-baseline justify-center text-center gap-x-2.5 sm:gap-x-3.5 lg:gap-x-0 lg:flex-col lg:items-start lg:justify-start lg:text-left text-[clamp(2.6rem,10.5vw,10.5rem)] lg:text-mega tracking-normal leading-[1.0] pb-2 mb-6 lg:pb-4 lg:mb-8 select-none overflow-visible"
             >
               {/* Line 1: NEEL in MBF Taurian — leading-[1.02], pb-[0.12em] and overflow-visible ensure glyph serifs/descenders are never clipped */}
-              <span className="wordmark-line-1 relative inline-block font-taurian font-normal tracking-tight leading-[1.02] pb-[0.12em] overflow-visible">
+              <span className="wordmark-line-1 relative inline-block font-taurian uppercase font-normal tracking-tight leading-[1.02] pb-[0.12em] overflow-visible drop-shadow-md">
                 <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none leading-[1.02] pb-[0.12em] overflow-visible">N</span>
                 <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none leading-[1.02] pb-[0.12em] overflow-visible">E</span>
                 <span className="wordmark-char inline-block text-terracotta [-webkit-text-fill-color:#f67c29] leading-[1.02] pb-[0.12em] overflow-visible">E</span>
                 <span className="wordmark-char inline-block bg-gradient-to-r from-cream via-kraft to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none leading-[1.02] pb-[0.12em] overflow-visible">L</span>
               </span>
 
-              {/* Line 2: Patel in MBF Taurian with animated luxury gradient */}
-              <span className="wordmark-line-2 relative font-taurian font-normal leading-[1.02] tracking-tight select-none inline-block lg:block overflow-visible pb-[0.12em] text-[1em] lg:text-[1.3em] mt-0 lg:-mt-[100px]">
-                <span className="inline-block bg-gradient-to-r from-cream via-terracotta to-cream bg-[length:220%_100%] bg-clip-text text-transparent [-webkit-text-fill-color:transparent] animate-gradientPan motion-reduce:animate-none">
-                  Patel
-                </span>
+              {/* Line 2: Patel in font-script (same font as "deliver") with orange accent glow & shadow */}
+              <span className="wordmark-line-2 relative font-script font-normal normal-case select-none inline-block lg:block overflow-visible pb-[0.08em] text-[1.15em] sm:text-[1.25em] lg:text-[1.45em] leading-[0.8] mt-0 lg:-mt-[36px] text-terracotta [text-shadow:0_4px_20px_rgba(246,124,41,0.7),0_0_35px_rgba(246,124,41,0.35)] animate-text-breathe [animation-duration:6.0s]">
+                Patel
               </span>
             </h1>
 
