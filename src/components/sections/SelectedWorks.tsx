@@ -37,7 +37,7 @@ function MarqueeReelCard({ work }: { work: Work }) {
 
   return (
     <div
-      className="flex-shrink-0 flex flex-col gap-3 group select-none"
+      className="flex-shrink-0 flex flex-col gap-3 group select-none mr-6"
       style={{ width: `calc(var(--rail-h, 288px) * ${ratio.toFixed(6)})` }}
     >
       <div className="relative rounded-lg overflow-hidden border border-line-2 group-hover:border-terracotta/70 transition-[transform,border-color,box-shadow] duration-300 shadow-xl group-hover:scale-[1.06] group-hover:z-20 bg-black">
@@ -222,7 +222,7 @@ function DraggableMarqueeRow({
     >
       <div
         ref={innerRef}
-        className={`flex gap-6 w-max ${
+        className={`flex w-max ${
           prefersReducedMotion
             ? ''
             : 'animate-marquee-slow'
@@ -467,7 +467,7 @@ export function SelectedWorks() {
           </Reveal>
 
           {/* Continuous Right-to-Left Marquee — Two Draggable Offset Rows */}
-          <div className="marquee-rail relative w-full overflow-hidden py-8 -mx-6 md:-mx-12 px-6 md:px-12">
+          <div className="marquee-rail relative overflow-hidden py-8 -mx-6 md:-mx-12 px-6 md:px-12">
             {/* Row A */}
             <DraggableMarqueeRow
               works={railRowA}
@@ -614,16 +614,15 @@ export function SelectedWorks() {
                                     }}
                                   />
                                 )}
-                                <Image
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img
                                   src={`/posters/${reel.id}.webp`}
+                                  srcSet={`/posters/${reel.id}-480.webp 480w, /posters/${reel.id}-960.webp 960w, /posters/${reel.id}-1440.webp 1440w, /posters/${reel.id}.webp 1920w`}
                                   alt={reel.title}
-                                  fill
                                   sizes="190px"
-                                  placeholder={
-                                    (lqipData as Record<string, string>)[reel.id] ? 'blur' : 'empty'
-                                  }
-                                  blurDataURL={(lqipData as Record<string, string>)[reel.id]}
-                                  className="object-cover pointer-events-none z-[1]"
+                                  loading="lazy"
+                                  decoding="async"
+                                  className="absolute inset-0 object-cover w-full h-full pointer-events-none z-[1]"
                                 />
                               </>
                             )}
@@ -680,14 +679,15 @@ export function SelectedWorks() {
                         style={{ backgroundImage: `url("${reelLqip}")` }}
                       />
                     )}
-                    <Image
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={`/posters/${reel.id}.webp`}
+                      srcSet={`/posters/${reel.id}-480.webp 480w, /posters/${reel.id}-960.webp 960w, /posters/${reel.id}-1440.webp 1440w, /posters/${reel.id}.webp 1920w`}
                       alt={reel.title}
-                      fill
                       sizes="(max-width: 640px) 50vw, 33vw"
-                      placeholder={reelLqip ? 'blur' : 'empty'}
-                      blurDataURL={reelLqip}
-                      className="object-cover pointer-events-none z-[1]"
+                      loading="lazy"
+                      decoding="async"
+                      className="absolute inset-0 object-cover w-full h-full pointer-events-none z-[1]"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-ground/80 via-transparent to-transparent pointer-events-none z-10" />
                   </div>

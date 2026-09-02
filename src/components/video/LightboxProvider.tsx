@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { VideoModal, ModalWork } from './VideoModal';
+import { useVideoRegistry } from '@/store/useVideoRegistry';
 
 interface LightboxContextType {
   open: (work: ModalWork) => void;
@@ -12,14 +13,17 @@ const LightboxContext = createContext<LightboxContextType | null>(null);
 
 export function LightboxProvider({ children }: { children: React.ReactNode }) {
   const [activeWork, setActiveWork] = useState<ModalWork | null>(null);
+  const setModalOpen = useVideoRegistry((s) => s.setModalOpen);
 
   const open = useCallback((work: ModalWork) => {
+    setModalOpen(true);
     setActiveWork(work);
-  }, []);
+  }, [setModalOpen]);
 
   const close = useCallback(() => {
+    setModalOpen(false);
     setActiveWork(null);
-  }, []);
+  }, [setModalOpen]);
 
   const value = useMemo(() => ({ open, close }), [open, close]);
 

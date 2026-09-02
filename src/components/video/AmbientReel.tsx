@@ -55,7 +55,7 @@ export function AmbientReel({
 
   const claimAmbientSlot = useVideoRegistry((state) => state.claimAmbientSlot);
   const releaseAmbientSlot = useVideoRegistry((state) => state.releaseAmbientSlot);
-  const activeAmbientIds = useVideoRegistry((state) => state.activeAmbientIds);
+  const isModalOpen = useVideoRegistry((state) => state.isModalOpen);
 
   const lqip = (lqipData as Record<string, string>)[id] || '';
 
@@ -154,7 +154,7 @@ export function AmbientReel({
         iframeRef.current.src = 'about:blank';
       }
     }
-  }, [inViewport, hasSlot, instanceKey, priority, signalsLeadReady, claimAmbientSlot, releaseAmbientSlot, activeAmbientIds]);
+  }, [inViewport, hasSlot, instanceKey, priority, signalsLeadReady, claimAmbientSlot, releaseAmbientSlot]);
 
   const shouldMountIframe = (priority || signalsLeadReady) || (inViewport && hasSlot);
 
@@ -164,6 +164,16 @@ export function AmbientReel({
     const msg = JSON.stringify({ method, value });
     iframeRef.current.contentWindow.postMessage(msg, 'https://player.vimeo.com');
   };
+
+  // Pause ambient playback when lightbox modal is open, resume when closed
+  useEffect(() => {
+    if (!shouldMountIframe || !iframeRef.current) return;
+    if (isModalOpen) {
+      post('pause');
+    } else {
+      post('play');
+    }
+  }, [isModalOpen, shouldMountIframe]);
 
   useEffect(() => {
     if (!shouldMountIframe) {
@@ -264,15 +274,15 @@ export function AmbientReel({
       )}
 
       {/* 2. Poster frame (never unmounted) */}
-      <Image
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={`/posters/${id}.webp`}
+        srcSet={`/posters/${id}-480.webp 480w, /posters/${id}-960.webp 960w, /posters/${id}-1440.webp 1440w, /posters/${id}.webp 1920w`}
         alt={title}
-        fill
-        priority={priority}
         sizes={defaultSizes}
-        placeholder={lqip ? 'blur' : 'empty'}
-        blurDataURL={lqip}
-        className="object-cover pointer-events-none z-[1]"
+        loading={priority ? 'eager' : 'lazy'}
+        decoding="async"
+        className="absolute inset-0 object-cover w-full h-full pointer-events-none z-[1]"
       />
 
       {/* 3. Vimeo ambient looping iframe (opacity transition on play, mounted only when gated) */}

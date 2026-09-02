@@ -21,9 +21,13 @@ export function SmoothScroller({ children }: SmoothScrollerProps) {
   const lenisRef = useRef<Lenis | null>(null);
 
   useEffect(() => {
-    // Respect reduced motion preferences
+    // Always provide bounded lag smoothing for GSAP animations
+    gsap.ticker.lagSmoothing(500, 33);
+
+    // Respect reduced motion preferences and skip on touch devices where native scroll is smoother
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (prefersReducedMotion) return;
+    const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+    if (prefersReducedMotion || isTouchDevice) return;
 
     const instance = new Lenis({
       lerp: 0.085,
@@ -45,7 +49,6 @@ export function SmoothScroller({ children }: SmoothScrollerProps) {
     };
 
     gsap.ticker.add(updateTicker);
-    gsap.ticker.lagSmoothing(0);
 
     // Scroll velocity coupling via exported module variable (Defect 2e)
     const velTween = gsap.to({}, {

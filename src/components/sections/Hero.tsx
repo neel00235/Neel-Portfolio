@@ -368,24 +368,27 @@ export function Hero() {
           </div>
 
           {/* Right Column: Editorial Portrait Collage & Specs */}
-          <div className="lg:col-span-5 z-10 flex flex-col gap-6 order-1 lg:order-2">
-            <Reveal variant="scale" delay={0.18}>
+          <div className="lg:col-span-5 z-10 flex flex-col gap-6 order-1 lg:order-2 w-full">
+            <Reveal variant="scale" delay={0.18} className="w-full">
               <figure
                 ref={portraitRef}
-                className="relative w-full aspect-[4/5] rounded-lg overflow-hidden border border-line-2 bg-ground-2 shadow-2xl group"
+                className="relative w-full max-w-full aspect-[4/5] rounded-lg overflow-hidden border border-line-2 bg-ground-2 shadow-2xl group"
               >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src="/portrait/neel-collage.webp"
-                  alt={HERO.portraitAlt}
-                  fill
-                  priority
-                  className="object-cover w-full h-full filter saturate-90 contrast-105 group-hover:scale-102 transition-transform duration-700 ease-out"
+                  srcSet="/portrait/neel-sm.webp 700w, /portrait/neel-collage.webp 1400w"
                   sizes="(max-width: 1024px) 100vw, 40vw"
+                  alt={HERO.portraitAlt}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  className="absolute inset-0 object-cover w-full h-full filter saturate-90 contrast-105 group-hover:scale-102 transition-transform duration-700 ease-out"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-ground/90 via-transparent to-transparent" />
                 {/* R-37 & B-8: Rotating Circular Badge driven by animate-spinSlow */}
                 <div className="absolute top-4 right-4 z-20 w-24 h-24 pointer-events-none select-none">
-                  <svg viewBox="0 0 100 100" className="w-full h-full animate-spinSlow text-cream/80 drop-shadow-md">
+                  <svg viewBox="0 0 100 100" className="w-full h-full animate-spinSlow text-cream/80 drop-shadow-md overflow-hidden">
                     <path
                       id="heroBadgePath"
                       d="M 50, 50 m -36, 0 a 36,36 0 1,1 72,0 a 36,36 0 1,1 -72,0"

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useId } from 'react';
 import Image from 'next/image';
 import { Play } from 'lucide-react';
 import { VimeoFacade, VimeoFacadeHandle } from './VimeoFacade';
@@ -20,6 +20,7 @@ interface VideoFrameProps {
   priority?: boolean;
   autoPlayLead?: boolean;
   bare?: boolean;
+  clickToPlay?: boolean;
   className?: string;
 }
 
@@ -33,12 +34,16 @@ export function VideoFrame({
   priority = false,
   autoPlayLead = false,
   bare = false,
+  clickToPlay = true,
   className = '',
 }: VideoFrameProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const facadeRef = useRef<VimeoFacadeHandle>(null);
   const hoverIframeRef = useRef<HTMLIFrameElement | null>(null);
   const dwellTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const reactId = useId();
+  const instanceId = `${id}-${reactId.replace(/[^a-zA-Z0-9_-]/g, '_')}`;
 
   const [isPlayingFull, setIsPlayingFull] = useState(autoPlayLead);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
@@ -61,8 +66,11 @@ export function VideoFrame({
     };
   }, []);
 
-  const { activeFullId, activePreviewId, playFull, stopFull, playPreview, stopPreview } =
-    useVideoRegistry();
+  const playFull = useVideoRegistry((s) => s.playFull);
+  const activeFullInstanceId = useVideoRegistry((s) => s.activeFullInstanceId);
+  const activePreviewId = useVideoRegistry((s) => s.activePreviewId);
+  const playPreview = useVideoRegistry((s) => s.playPreview);
+  const stopPreview = useVideoRegistry((s) => s.stopPreview);
   const setTone = useTone((s) => s.setTone);
 
   // The lead film auto-starts without a click, so register it or the single-player
@@ -71,9 +79,9 @@ export function VideoFrame({
   useEffect(() => {
     if (!autoPlayLead || leadRegistered.current) return;
     leadRegistered.current = true;
-    playFull(id);
+    playFull(id, instanceId);
     if (tone) setTone(tone);
-  }, [autoPlayLead, id, playFull, tone, setTone]);
+  }, [autoPlayLead, id, instanceId, playFull, tone, setTone]);
 
   const lqip = (lqipData as Record<string, string>)[id] || '';
 
@@ -94,23 +102,23 @@ export function VideoFrame({
 
   // Sync with global video registry
   useEffect(() => {
-    const currentActive = useVideoRegistry.getState().activeFullId;
-    if (currentActive && currentActive !== id && isPlayingFull) {
+    const currentActive = useVideoRegistry.getState().activeFullInstanceId;
+    if (currentActive && currentActive !== instanceId && isPlayingFull) {
       setIsPlayingFull(false);
       setIsVideoPlaying(false);
       setCurrentTime(0);
       setProgress(0);
     }
-  }, [activeFullId, id, isPlayingFull]);
+  }, [activeFullInstanceId, instanceId, isPlayingFull]);
 
   // Clean up active full player on unmount
   useEffect(() => {
     return () => {
-      if (useVideoRegistry.getState().activeFullId === id) {
-        useVideoRegistry.getState().stopFull(id);
+      if (useVideoRegistry.getState().activeFullInstanceId === instanceId) {
+        useVideoRegistry.getState().stopFull(id, instanceId);
       }
     };
-  }, [id]);
+  }, [id, instanceId]);
 
   // PostMessage helper for hover iframe
   const postHover = (method: string, value?: unknown) => {
@@ -247,7 +255,7 @@ export function VideoFrame({
     teardownHover();
     userPausedRef.current = false;
     if (!isPlayingFull) {
-      playFull(id);
+      playFull(id, instanceId);
       setIsPlayingFull(true);
       if (tone) setTone(tone);
     }
@@ -301,8 +309,8 @@ export function VideoFrame({
         isFullscreen ? '!aspect-auto' : getAspectClass(aspect)
       } select-none transition-all duration-500 ease-out cursor-pointer ${className}`}
       data-cursor={isPlayingFull ? 'Sound' : 'Play'}
-      onClick={() => {
-        if (!isPlayingFull) handlePosterPlayClick();
+      onClick={(e) => {
+        if (!isPlayingFull && clickToPlay) handlePosterPlayClick(e);
       }}
     >
       {/* 1. LQIP blur fallback - always present beneath everything */}
@@ -320,14 +328,14 @@ export function VideoFrame({
           hoverReady ? 'opacity-0' : 'opacity-100'
         }`}
       >
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={`/posters/${id}.webp`}
+          srcSet={`/posters/${id}-480.webp 480w, /posters/${id}-960.webp 960w, /posters/${id}-1440.webp 1440w, /posters/${id}.webp 1920w`}
           alt={title}
-          fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          priority={priority}
-          placeholder={lqip ? 'blur' : 'empty'}
-          blurDataURL={lqip}
+          loading={priority ? 'eager' : 'lazy'}
+          decoding="async"
           className={`object-cover w-full h-full transition-transform duration-500 ease-out ${
             isBare ? '' : 'group-hover:scale-105'
           }`}
@@ -380,6 +388,7 @@ export function VideoFrame({
           <VimeoFacade
             ref={facadeRef}
             videoId={id}
+            playerId={instanceId}
             title={title}
             autoPlay={true}
             onReady={() => {

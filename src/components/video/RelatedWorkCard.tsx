@@ -38,6 +38,7 @@ export function RelatedWorkCard({ work }: { work: Work }) {
           aspect={work.aspect}
           duration={work.duration}
           tone={work.tone}
+          clickToPlay={false}
         />
       </div>
       <div className="flex items-center justify-between font-mono text-label">

@@ -245,6 +245,7 @@ export function Gallery() {
                     aspect={work.aspect}
                     duration={work.duration}
                     tone={work.tone}
+                    clickToPlay={false}
                   />
                   <button
                     type="button"

@@ -11,6 +11,7 @@ export interface VimeoFacadeHandle {
 
 export interface VimeoFacadeProps {
   videoId: string;
+  playerId?: string;
   title: string;
   autoPlay?: boolean;
   onReady?: () => void;
@@ -25,6 +26,7 @@ export interface VimeoFacadeProps {
 export const VimeoFacade = forwardRef<VimeoFacadeHandle, VimeoFacadeProps>(function VimeoFacade(
   {
     videoId,
+    playerId,
     title,
     autoPlay = true,
     onReady,
@@ -37,6 +39,7 @@ export const VimeoFacade = forwardRef<VimeoFacadeHandle, VimeoFacadeProps>(funct
   }: VimeoFacadeProps,
   ref
 ) {
+  const effectivePlayerId = playerId || videoId;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const soundEnabled = useSound((s) => s.soundEnabled);
   const [facadeReady, setFacadeReady] = useState(false);
@@ -63,17 +66,24 @@ export const VimeoFacade = forwardRef<VimeoFacadeHandle, VimeoFacadeProps>(funct
     };
   });
 
-  // Send message to Vimeo iframe with exact targetOrigin and fallback
+  // Send message to Vimeo iframe with exact targetOrigin
   const post = (method: string, value?: unknown) => {
     if (!iframeRef.current?.contentWindow) return;
     try {
       const msg = JSON.stringify(value !== undefined ? { method, value } : { method });
       iframeRef.current.contentWindow.postMessage(msg, 'https://player.vimeo.com');
-      iframeRef.current.contentWindow.postMessage(msg, '*');
     } catch {}
   };
 
+  const listenersRegisteredRef = useRef(false);
+
   const setupListeners = () => {
+    if (listenersRegisteredRef.current) {
+      post('getDuration');
+      post('setVolume', soundEnabled ? 1 : 0);
+      return;
+    }
+    listenersRegisteredRef.current = true;
     const events = ['play', 'playing', 'pause', 'finish', 'ended', 'timeupdate', 'seek', 'seeked', 'progress'];
     for (const evt of events) {
       post('addEventListener', evt);
@@ -117,7 +127,7 @@ export const VimeoFacade = forwardRef<VimeoFacadeHandle, VimeoFacadeProps>(funct
     }, 6000);
 
     const handleMessage = (e: MessageEvent) => {
-      if (e.origin && !e.origin.includes('vimeo.com')) return;
+      if (e.origin !== 'https://player.vimeo.com') return;
 
       try {
         let data = e.data;
@@ -131,7 +141,7 @@ export const VimeoFacade = forwardRef<VimeoFacadeHandle, VimeoFacadeProps>(funct
         if (!data || typeof data !== 'object') return;
 
         // Filter by player_id so multiple players never cross-talk
-        if (data.player_id && String(data.player_id) !== String(videoId)) return;
+        if (data.player_id && String(data.player_id) !== String(effectivePlayerId)) return;
 
         const eventName = String(data.event || data.method || '').toLowerCase();
 
@@ -207,24 +217,22 @@ export const VimeoFacade = forwardRef<VimeoFacadeHandle, VimeoFacadeProps>(funct
 
     window.addEventListener('message', handleMessage);
 
-    // Initial listener registration attempts
+    // Initial listener registration attempt
     setupListeners();
-    const retry1 = setTimeout(setupListeners, 400);
-    const retry2 = setTimeout(setupListeners, 1200);
 
     return () => {
       clearTimeout(watchdogTimer);
-      clearTimeout(retry1);
-      clearTimeout(retry2);
       window.removeEventListener('message', handleMessage);
     };
-  }, [videoId, autoPlay, soundEnabled]);
+  }, [videoId, effectivePlayerId, autoPlay, soundEnabled]);
 
   const handleIframeLoad = () => {
     setupListeners();
   };
 
-  const embedUrl = `https://player.vimeo.com/video/${videoId}?api=1&player_id=${videoId}&autoplay=${
+  const embedUrl = `https://player.vimeo.com/video/${videoId}?api=1&player_id=${encodeURIComponent(
+    effectivePlayerId
+  )}&autoplay=${
     autoPlay ? 1 : 0
   }&muted=${autoPlay ? 1 : (soundEnabled ? 0 : 1)}&playsinline=1&autopause=0&loop=1&background=0&controls=0&dnt=1&quality=1080p&app_id=122963`;
 
